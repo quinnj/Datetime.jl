@@ -1,4 +1,16 @@
+module TimeSeries
+
 importall Base
+
+export Calendar, ISOCalendar, TimeZone, Date, DateTime, DateRange1,
+    Year, Month, Week, Day, Hour, Minute, Second,
+    year, month, week, day, hour, minute, second,
+    years,months,weeks,days,hours,minutes,seconds,
+    addwrap, subwrap, Date, date, unix2datetime, datetime,
+    isleap, isleapday, lastday, dayofweek, dayofyear, week,
+    now, calendar, timezone, timezoneid,
+    CALENDAR, TIMEZONE
+
 abstract AbstractTime
 abstract Calendar <: AbstractTime
 abstract ISOCalendar <: Calendar
@@ -9,7 +21,7 @@ abstract TimeZone <: AbstractTime
 include("timezone.jl")
 #Set the default timezone to use; overriding this will affect module-wide defaults
 #typealias UTC Zone0
-TIMEZONE = UTC
+const TIMEZONE = UTC
 
 abstract TimeType <: AbstractTime
 #immutable Date{C <: Calendar}						<: TimeType
@@ -330,11 +342,11 @@ function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::Peri
     return _datetime(secs,ISOCalendar,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end
 datetime{C<:Calendar}(d::Date{C}) = datetime(d.year,d.month,d.day,0,0,0,C,TIMEZONE)
-const UNIXEPOCH = 62135596860 #Rata Die seconds since 1970-01-01T00:00:00 UTC
-unix2datetime(x::Real) = _datetime(UNIXEPOCH + x)
+unix2datetime{T<:TimeZone}(x::Real,tz::Type{T}=TIMEZONE) = _datetime(UNIXEPOCH + x,CALENDAR,tz)
 @vectorize_1arg Real unix2datetime
 #@vectorize_1arg Real TmStruct #just for testing
-now() = unix2datetime(time())
+now() = (s = time(); unix2datetime(s-leaps(s)))
+now{T<:TimeZone}(tz::Type{T}) = (s = time(); unix2datetime(s-leaps(s),tz))
 # datetime{C<:Calendar,T<:TimeZone}(d::Date{C},t::Time{T}) = datetime(d.year,d.month,d.day,t.hour,t.minute,t.second,C,T)
 #Accessors/Traits/Print/Show
 function string{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})
@@ -398,3 +410,4 @@ week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})       = week(year(dt),month(dt)
 @vectorize_1arg DateTime week
 
 #DateTime-Period arithmetic: <<, >>
+end #module
