@@ -1,3 +1,5 @@
+# @time include("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/Julia Files/date/datetime.jl")
+# using TimeSeries
 y = year(1)
 m = month(1)
 w = week(1)
@@ -57,13 +59,13 @@ dt = date(2013,7,1)
 @assert dayofweek(dt) == 1
 @assert isleapday(dt) == false
 @assert lastday(dt) == 31
-@assert _yeardays(dt) == 735233
-@assert _monthdays(dt) == 122
-@assert _daynumbers(dt) == 735049
+@assert TimeSeries._yeardays(dt) == 735233
+@assert TimeSeries._monthdays(dt) == 122
+@assert TimeSeries._daynumbers(dt) == 735049
 @assert typeof(lastday(dt)) == Int64
-@assert typeof(_yeardays(dt)) == Int64
-@assert typeof(_monthdays(dt)) == Int64
-@assert typeof(_daynumbers(dt)) == Int64
+@assert typeof(TimeSeries._yeardays(dt)) == Int64
+@assert typeof(TimeSeries._monthdays(dt)) == Int64
+@assert typeof(TimeSeries._daynumbers(dt)) == Int64
 dt = date(2012,2,29)
 dt2 = date(2000,2,1)
 @assert dt > dt2
@@ -72,10 +74,10 @@ dt2 = date(2000,2,1)
 @assert calendar(dt) == ISOCalendar
 @assert (-dt).year == -2012
 @assert +dt == dt
-Base.Test.@test_fails dt + dt2
-Base.Test.@test_fails dt * dt2
-Base.Test.@test_fails dt / dt2
-Base.Test.@test_fails dt + hour(1)
+Base.Test.@test_throws dt + dt2
+Base.Test.@test_throws dt * dt2
+Base.Test.@test_throws dt / dt2
+Base.Test.@test_throws dt + hour(1)
 @assert dt - dt2 == 4411
 @assert dt > dt2
 @assert dt2 < dt
@@ -156,11 +158,11 @@ b = datetime(1982,6,30,23,59,60)
 c = datetime(1982,7,1,0,0,0)
 
 #Timezone
-TIMEZONE = CST;
-q = datetime(1972,6,30,18,59,58)
-t = datetime(1972,6,30,18,59,59)
-n = datetime(1972,6,30,18,59,60)
-r = datetime(1972,6,30,19,0,0)
+TZ = CST
+q = datetime(1972,6,30,18,59,58,TZ)
+t = datetime(1972,6,30,18,59,59,TZ)
+n = datetime(1972,6,30,18,59,60,TZ)
+r = datetime(1972,6,30,19,0,0,TZ)
 @assert t - q == 1
 @assert t == t
 @assert r - t == 2 #Includes leap second
@@ -169,7 +171,7 @@ r = datetime(1972,6,30,19,0,0)
 
 #Conversion from Unix time
 _ = time()
-tt = unix2datetime(_)
+tt = unix2datetime(_,TZ)
 ttt = TmStruct(_)
 year(tt) == int("20"*string(digits(ttt.year)[2])*string(digits(ttt.year)[1]))
 month(tt) == ttt.month+1
