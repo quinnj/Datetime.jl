@@ -1,4 +1,4 @@
-module TimeSeries
+module Datetime
 
 importall Base
 
@@ -7,21 +7,22 @@ export Calendar, ISOCalendar, TimeZone, Date, DateTime, DateRange1,
     year, month, week, day, hour, minute, second,
     years,months,weeks,days,hours,minutes,seconds,
     addwrap, subwrap, Date, date, unix2datetime, datetime,
-    isleap, isleapday, lastday, dayofweek, dayofyear, week,
-    now, calendar, timezone, timezoneid,
-    CALENDAR, TIMEZONE
+    isleap, isleapday, lastday, dayofweek, dayofyear, week, isdate,
+    now, calendar, timezone, setcalendar, settimezone
 
 abstract AbstractTime
 abstract Calendar <: AbstractTime
 abstract ISOCalendar <: Calendar
 #Set the default calendar to use; overriding this will affect module-wide defaults
-const CALENDAR = ISOCalendar
+CALENDAR = ISOCalendar
+setcalendar{C<:Calendar}(cal::Type{C}) = global CALENDAR = cal
 
 abstract TimeZone <: AbstractTime
 include("timezone.jl")
 #Set the default timezone to use; overriding this will affect module-wide defaults
 #typealias UTC Zone0
-const TIMEZONE = UTC
+TIMEZONE = UTC
+settimezone{T<:TimeZone}(tz::Type{T}) = global TIMEZONE = tz
 
 abstract TimeType <: AbstractTime
 #immutable Date{C <: Calendar}						<: TimeType
@@ -342,11 +343,11 @@ function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::Peri
     return _datetime(secs,ISOCalendar,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end
 datetime{C<:Calendar}(d::Date{C}) = datetime(d.year,d.month,d.day,0,0,0,C,TIMEZONE)
-unix2datetime{T<:TimeZone}(x::Real,tz::Type{T}=TIMEZONE) = _datetime(UNIXEPOCH + x,CALENDAR,tz)
+unix2datetime{T<:TimeZone}(x::Real,tz::Type{T}=TIMEZONE) = (s = UNIXEPOCH + x; _datetime(s - leaps(s),CALENDAR,tz))
 @vectorize_1arg Real unix2datetime
 #@vectorize_1arg Real TmStruct #just for testing
-now() = (s = time(); unix2datetime(s-leaps(s)))
-now{T<:TimeZone}(tz::Type{T}) = (s = time(); unix2datetime(s-leaps(s),tz))
+now() = unix2datetime(time())
+now{T<:TimeZone}(tz::Type{T}) = unix2datetime(time(),tz)
 # datetime{C<:Calendar,T<:TimeZone}(d::Date{C},t::Time{T}) = datetime(d.year,d.month,d.day,t.hour,t.minute,t.second,C,T)
 #Accessors/Traits/Print/Show
 function string{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})
