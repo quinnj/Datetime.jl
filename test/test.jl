@@ -182,6 +182,7 @@ minute(tt) == ttt.min
 second(tt) == ttt.sec #second may be off by 1, not sure why
 
 @assert timezone(datetime(2013,7,6,0,0,0,"America/Chicago")) == CDT
+@assert second(datetime(1972,6,30,22,58,60)) == 0
 
 # y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(59)
 # y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(60)

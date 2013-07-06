@@ -332,7 +332,6 @@ leaps(secs::DateTimeMath)  = findfirst(x::Int64->x>=int64(secs),_leaps) - 1
 leaps1(secs::DateTimeMath) = findfirst(x::Int64->x>=int64(secs),_leaps1) - 1
 function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::Type{T}=TIMEZONE)
     -1 < s < 61 || error("Invalid datetime")
-    s == 60 && ((m == 6 && contains(_juneleap,y)) || (m == 12 && contains(_decleap,y)) || error("Invalid leapsecond"))
     -1 < mi < 60 || error("Invalid datetime")
     -1 < h < 24 || error("Invalid datetime")
     0 < d < _lastday(year(y),month(m)) +  1 || error("Invalid datetime")
