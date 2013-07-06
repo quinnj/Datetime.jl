@@ -342,6 +342,7 @@ function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::Peri
     secs += y < 1972 ? 0 : s == 60 ? leaps1(secs) : leaps(secs)
     return _datetime(secs,ISOCalendar,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end
+datetime(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::String) = datetime(y,m,d,h,mi,s,timezone(tz))
 datetime{C<:Calendar}(d::Date{C}) = datetime(d.year,d.month,d.day,0,0,0,C,TIMEZONE)
 unix2datetime{T<:TimeZone}(x::Real,tz::Type{T}=TIMEZONE) = (s = UNIXEPOCH + x; _datetime(s + leaps(s),CALENDAR,tz))
 @vectorize_1arg Real unix2datetime

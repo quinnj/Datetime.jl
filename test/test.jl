@@ -177,9 +177,11 @@ ttt = TmStruct(_)
 year(tt) == int("20"*string(digits(ttt.year)[2])*string(digits(ttt.year)[1]))
 month(tt) == ttt.month+1
 day(tt) == ttt.mday
-hour(tt) == ttt.hour #need to correct timezone
+hour(tt) == ttt.hour
 minute(tt) == ttt.min
-second(tt) == ttt.sec #seconds will be off due to different handling of leap seconds
+second(tt) == ttt.sec #second may be off by 1, not sure why
+
+@assert timezone(datetime(2013,7,6,0,0,0,"America/Chicago")) == CDT
 
 # y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(59)
 # y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(60)
