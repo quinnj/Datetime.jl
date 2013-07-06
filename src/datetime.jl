@@ -364,11 +364,14 @@ print{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = print(string(dt))
 show{C<:Calendar,T<:TimeZone}(io::IO,dt::DateTime{C,T}) = print(io,string(dt))
 #Adapted from our _day2date function for efficiency (avoid full Date construction)
 function _day2year(x::Int64)
-    z = int(x) + 307
-    h = z - .25 
-    centdays = fld(h,36524.25)  
-    centdays -= fld(centdays,4)
-    return fld(centdays+h,365.25)
+	z = int(x) + 307
+	h = z - .25	
+	centdays = fld(h,36524.25)	
+	centdays -= fld(centdays,4)
+	yy = fld(centdays+h,365.25)
+	c = centdays + z - itrunc(365.25*yy)
+	mm = div(5*c+456,153)
+	return mm > 12 ? yy+1 : yy
 end
 function _day2month(x::Int64)
     z = int(x) + 307
@@ -388,7 +391,7 @@ function _day2day(x::Int64)
     mm = div(5*c+456,153)
     return c - _monthdays(mm)
 end
-year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _day2date(fld(int64(dt)-leaps(dt)+utcoffset(T,dt),86400)).year
+year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _day2year(fld(int64(dt)-leaps(dt)+utcoffset(T,dt),86400))
 month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = _day2month(fld(int64(dt)-leaps(dt)+utcoffset(T,dt),86400))
 day{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})      = _day2day(fld(int64(dt)-leaps(dt)+utcoffset(T,dt),86400))
 hour{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = fld((int64(dt) - leaps(dt)+utcoffset(T,dt)),3600) % 24

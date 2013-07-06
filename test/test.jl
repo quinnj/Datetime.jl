@@ -60,13 +60,13 @@ dt = date(2013,7,1)
 @assert dayofweek(dt) == 1
 @assert isleapday(dt) == false
 @assert lastday(dt) == 31
-@assert TimeSeries._yeardays(dt) == 735233
-@assert TimeSeries._monthdays(dt) == 122
-@assert TimeSeries._daynumbers(dt) == 735049
+@assert Datetime._yeardays(dt) == 735233
+@assert Datetime._monthdays(dt) == 122
+@assert Datetime._daynumbers(dt) == 735049
 @assert typeof(lastday(dt)) == Int64
-@assert typeof(TimeSeries._yeardays(dt)) == Int64
-@assert typeof(TimeSeries._monthdays(dt)) == Int64
-@assert typeof(TimeSeries._daynumbers(dt)) == Int64
+@assert typeof(Datetime._yeardays(dt)) == Int64
+@assert typeof(Datetime._monthdays(dt)) == Int64
+@assert typeof(Datetime._daynumbers(dt)) == Int64
 dt = date(2012,2,29)
 dt2 = date(2000,2,1)
 @assert dt > dt2
