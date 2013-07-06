@@ -343,7 +343,7 @@ function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::Peri
     return _datetime(secs,ISOCalendar,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end
 datetime{C<:Calendar}(d::Date{C}) = datetime(d.year,d.month,d.day,0,0,0,C,TIMEZONE)
-unix2datetime{T<:TimeZone}(x::Real,tz::Type{T}=TIMEZONE) = (s = UNIXEPOCH + x; _datetime(s - leaps(s),CALENDAR,tz))
+unix2datetime{T<:TimeZone}(x::Real,tz::Type{T}=TIMEZONE) = (s = UNIXEPOCH + x; _datetime(s + leaps(s),CALENDAR,tz))
 @vectorize_1arg Real unix2datetime
 #@vectorize_1arg Real TmStruct #just for testing
 now() = unix2datetime(time())

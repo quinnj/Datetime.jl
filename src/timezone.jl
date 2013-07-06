@@ -196,7 +196,7 @@ typealias WET Zone299; export WET
 typealias YAKT Zone318; export YAKT
 typealias YEKT Zone312; export YEKT
 
-const UNIXEPOCH = 62135596860 #Rata Die seconds since 1970-01-01T00:00:00 UTC
+const UNIXEPOCH = 62135596800 #Rata Die seconds since 1970-01-01T00:00:00 UTC
 
 #Script to transform timezone.csv => Julia array
 let
