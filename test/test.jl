@@ -1,5 +1,6 @@
-# @time include("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/Julia Files/date/datetime.jl")
-# using TimeSeries
+# cd("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/GitHub/DateTime.jl")
+@time include("src/datetime.jl")
+using Datetime
 y = year(1)
 m = month(1)
 w = week(1)
