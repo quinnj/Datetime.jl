@@ -24,7 +24,7 @@ const TIMEZONES = (ASCIIString=>DataType)["Etc/GMT"=>Zone0,"Etc/UTC"=>Zone0,"Etc
 	"America/Metlakatla"=>Zone400,"Pacific/Honolulu"=>Zone401,"America/Montevideo"=>Zone402,"Asia/Samarkand"=>Zone403,"Asia/Tashkent"=>Zone404,"Europe/Vatican"=>Zone405,"America/St_Vincent"=>Zone406,"America/Caracas"=>Zone407,"America/Tortola"=>Zone408,"America/St_Thomas"=>Zone409,"Asia/Ho_Chi_Minh"=>Zone410,"Pacific/Efate"=>Zone411,"Pacific/Wallis"=>Zone412,"Pacific/Apia"=>Zone413,"Asia/Aden"=>Zone414,"Indian/Mayotte"=>Zone415,"Africa/Johannesburg"=>Zone416,"Africa/Lusaka"=>Zone417,"Africa/Harare"=>Zone418]
 
 #Zone id retrieval function
-timezoneid(x::String) = get(TIMEZONES,x,Zone0)
+timezone(x::String) = get(TIMEZONES,x,Zone0)
 
 #These functions retrieves the correct offset/abbreviation for a given time/timezone
 #Should this be a macro? My aim was to do this at parse/compilation time
@@ -202,7 +202,7 @@ const UNIXEPOCH = 62135596860 #Rata Die seconds since 1970-01-01T00:00:00 UTC
 let
 	global TIMEZONEDATA
 	#cd("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/GitHub/DateTime.jl/src")
-	local tzdata = readdlm("timezone.csv",',')
+	local tzdata = readdlm(Base.dirname(Base.source_path()) * "/timezone.csv",',')
 	const TIMEZONEDATA = hcat(map(x->eval(symbol("Zone" * string(int64(x)))),tzdata[:,1]),
 		tzdata[:,2],map(x->int64(x)+UNIXEPOCH,tzdata[:,3]),
 		map(int,tzdata[:,4]))
