@@ -193,7 +193,12 @@ second(tt) == ttt.sec #second may be off by 1, not sure why
 # for a = 12, b = [1:12]
 # 	println("$a - $b = $(subwrap(month(a),month(b)))")
 # end
-
+function test()
+	for i = 1:1000000
+		b = datetime(1982+i,6,30,23,59,59)
+	end
+end
+@time test()
 function test()
 	for i = 1:1000000
 		t = lastday(date(2000+i,i%12+1,i%30+1))
