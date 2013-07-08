@@ -1,6 +1,3 @@
-# cd("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/GitHub/DateTime.jl")
-@time include("src/datetime.jl")
-using Datetime
 y = year(1)
 m = month(1)
 w = week(1)
@@ -157,6 +154,8 @@ d = datetime(1973,1,1,0,0,1)
 a = datetime(1982,6,30,23,59,59)
 b = datetime(1982,6,30,23,59,60)
 c = datetime(1982,7,1,0,0,0)
+@assert c - b == 1
+@assert b - a == 1
 
 #Timezone
 TZ = CST
@@ -174,15 +173,15 @@ r = datetime(1972,6,30,19,0,0,TZ)
 _ = time()
 tt = unix2datetime(_,TZ)
 ttt = TmStruct(_)
-year(tt) == int("20"*string(digits(ttt.year)[2])*string(digits(ttt.year)[1]))
-month(tt) == ttt.month+1
-day(tt) == ttt.mday
-hour(tt) == ttt.hour
-minute(tt) == ttt.min
-second(tt) == ttt.sec #second may be off by 1, not sure why
+@assert year(tt) == int("20"*string(digits(ttt.year)[2])*string(digits(ttt.year)[1]))
+@assert month(tt) == ttt.month+1
+@assert day(tt) == ttt.mday
+@assert hour(tt) == ttt.hour
+@assert minute(tt) == ttt.min
+@assert second(tt) == ttt.sec #second may be off by 1, not sure why
 
 @assert timezone(datetime(2013,7,6,0,0,0,"America/Chicago")) == CDT
-@assert second(datetime(1972,6,30,22,58,60)) == 0
+@assert second(datetime(1972,6,30,22,58,60)) == 0 #entering "invalid" periods just rolls the date forward
 
 # y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(59)
 # y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(60)
@@ -193,45 +192,3 @@ second(tt) == ttt.sec #second may be off by 1, not sure why
 # for a = 12, b = [1:12]
 # 	println("$a - $b = $(subwrap(month(a),month(b)))")
 # end
-function test()
-	for i = 1:1000000
-		b = datetime(1982+i,6,30,23,59,59)
-	end
-end
-@time test()
-function test()
-	for i = 1:1000000
-		t = lastday(date(2000+i,i%12+1,i%30+1))
-	end
-end
-@time test()
-function test()
-	for i = 1:1000000
-		t = dayofyear(date(2000+i,i%12+1,i%30+1))
-	end
-end
-@time test()
-function test()
-	for i = 1:1000000
-		t = dayofweek(date(2000+i,i%12,i%30))
-	end
-end
-@time test()
-function test()
-	for i = 1:1000000
-		t = _day2date(_daynumbers(date(2000+i,i%12,i%30)))
-	end
-end
-@time test()
-function test()
-	for i = 1:1000000
-		t = _daynumbers(date(2000+i,i%12,i%30))
-	end
-end
-@time test()
-function test()
-	for i = 1:1000000
-		t = date(2000+i,12,30)
-	end
-end
-@time test()
