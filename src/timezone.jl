@@ -23,23 +23,50 @@ const TIMEZONES = (ASCIIString=>DataType)["Etc/GMT"=>Zone0,"Etc/UTC"=>Zone0,"Etc
 	"Indian/Kerguelen"=>Zone350,"Africa/Lome"=>Zone351,"Asia/Bangkok"=>Zone352,"Asia/Dushanbe"=>Zone353,"Pacific/Fakaofo"=>Zone354,"Asia/Dili"=>Zone355,"Asia/Ashgabat"=>Zone356,"Africa/Tunis"=>Zone357,"Pacific/Tongatapu"=>Zone358,"Europe/Istanbul"=>Zone359,"America/Port_of_Spain"=>Zone360,"Pacific/Funafuti"=>Zone361,"Asia/Taipei"=>Zone362,"Africa/Dar_es_Salaam"=>Zone363,"Europe/Kiev"=>Zone364,"Europe/Uzhgorod"=>Zone365,"Europe/Zaporozhye"=>Zone366,"Europe/Simferopol"=>Zone367,"Africa/Kampala"=>Zone368,"Pacific/Johnston"=>Zone369,"Pacific/Midway"=>Zone370,"Pacific/Wake"=>Zone371,"America/New_York"=>Zone372,"America/Detroit"=>Zone373,"America/Kentucky/Louisville"=>Zone374,"America/Kentucky/Monticello"=>Zone375,"America/Indiana/Indianapolis"=>Zone376,"America/Indiana/Vincennes"=>Zone377,"America/Indiana/Winamac"=>Zone378,"America/Indiana/Marengo"=>Zone379,"America/Indiana/Petersburg"=>Zone380,"America/Indiana/Vevay"=>Zone381,"America/Chicago"=>Zone382,"America/Indiana/Tell_City"=>Zone383,"America/Indiana/Knox"=>Zone384,"America/Menominee"=>Zone385,"America/North_Dakota/Center"=>Zone386,"America/North_Dakota/New_Salem"=>Zone387,"America/North_Dakota/Beulah"=>Zone388,"America/Denver"=>Zone389,"America/Boise"=>Zone390,"America/Shiprock"=>Zone391,"America/Phoenix"=>Zone392,"America/Los_Angeles"=>Zone393,"America/Anchorage"=>Zone394,"America/Juneau"=>Zone395,"America/Sitka"=>Zone396,"America/Yakutat"=>Zone397,"America/Nome"=>Zone398,"America/Adak"=>Zone399,
 	"America/Metlakatla"=>Zone400,"Pacific/Honolulu"=>Zone401,"America/Montevideo"=>Zone402,"Asia/Samarkand"=>Zone403,"Asia/Tashkent"=>Zone404,"Europe/Vatican"=>Zone405,"America/St_Vincent"=>Zone406,"America/Caracas"=>Zone407,"America/Tortola"=>Zone408,"America/St_Thomas"=>Zone409,"Asia/Ho_Chi_Minh"=>Zone410,"Pacific/Efate"=>Zone411,"Pacific/Wallis"=>Zone412,"Pacific/Apia"=>Zone413,"Asia/Aden"=>Zone414,"Indian/Mayotte"=>Zone415,"Africa/Johannesburg"=>Zone416,"Africa/Lusaka"=>Zone417,"Africa/Harare"=>Zone418]
 
+const DATAFILES = (DataType=>Symbol)[Zone0=>:Zone0DATA  ,Zone1=>:Zone1DATA  ,Zone2=>:Zone2DATA  ,Zone3=>:Zone3DATA  ,Zone4=>:Zone4DATA  ,Zone5=>:Zone5DATA  ,Zone6=>:Zone6DATA  ,Zone7=>:Zone7DATA  ,Zone8=>:Zone8DATA  ,Zone9=>:Zone9DATA  ,Zone10=>:Zone10DATA ,Zone11=>:Zone11DATA ,Zone12=>:Zone12DATA ,Zone13=>:Zone13DATA ,Zone14=>:Zone14DATA ,Zone15=>:Zone15DATA ,Zone16=>:Zone16DATA ,Zone17=>:Zone17DATA ,Zone18=>:Zone18DATA ,Zone19=>:Zone19DATA ,Zone20=>:Zone20DATA ,Zone21=>:Zone21DATA ,Zone22=>:Zone22DATA ,Zone23=>:Zone23DATA ,Zone24=>:Zone24DATA ,Zone25=>:Zone25DATA ,Zone26=>:Zone26DATA ,Zone27=>:Zone27DATA ,Zone28=>:Zone28DATA ,Zone29=>:Zone29DATA ,Zone30=>:Zone30DATA ,Zone31=>:Zone31DATA ,Zone32=>:Zone32DATA ,Zone33=>:Zone33DATA ,Zone34=>:Zone34DATA ,Zone35=>:Zone35DATA ,Zone36=>:Zone36DATA ,Zone37=>:Zone37DATA ,Zone38=>:Zone38DATA ,Zone39=>:Zone39DATA ,Zone40=>:Zone40DATA ,Zone41=>:Zone41DATA ,Zone42=>:Zone42DATA ,Zone43=>:Zone43DATA ,Zone44=>:Zone44DATA ,Zone45=>:Zone45DATA ,Zone46=>:Zone46DATA ,Zone47=>:Zone47DATA ,Zone48=>:Zone48DATA ,Zone49=>:Zone49DATA ,
+	Zone50=>:Zone50DATA ,Zone51=>:Zone51DATA ,Zone52=>:Zone52DATA ,Zone53=>:Zone53DATA ,Zone54=>:Zone54DATA ,Zone55=>:Zone55DATA ,Zone56=>:Zone56DATA ,Zone57=>:Zone57DATA ,Zone58=>:Zone58DATA ,Zone59=>:Zone59DATA ,Zone60=>:Zone60DATA ,Zone61=>:Zone61DATA ,Zone62=>:Zone62DATA ,Zone63=>:Zone63DATA ,Zone64=>:Zone64DATA ,Zone65=>:Zone65DATA ,Zone66=>:Zone66DATA ,Zone67=>:Zone67DATA ,Zone68=>:Zone68DATA ,Zone69=>:Zone69DATA ,Zone70=>:Zone70DATA ,Zone71=>:Zone71DATA ,Zone72=>:Zone72DATA ,Zone73=>:Zone73DATA ,Zone74=>:Zone74DATA ,Zone75=>:Zone75DATA ,Zone76=>:Zone76DATA ,Zone77=>:Zone77DATA ,Zone78=>:Zone78DATA ,Zone79=>:Zone79DATA ,Zone80=>:Zone80DATA ,Zone81=>:Zone81DATA ,Zone82=>:Zone82DATA ,Zone83=>:Zone83DATA ,Zone84=>:Zone84DATA ,Zone85=>:Zone85DATA ,Zone86=>:Zone86DATA ,Zone87=>:Zone87DATA ,Zone88=>:Zone88DATA ,Zone89=>:Zone89DATA ,Zone90=>:Zone90DATA ,Zone91=>:Zone91DATA ,Zone92=>:Zone92DATA ,Zone93=>:Zone93DATA ,Zone94=>:Zone94DATA ,Zone95=>:Zone95DATA ,Zone96=>:Zone96DATA ,Zone97=>:Zone97DATA ,Zone98=>:Zone98DATA ,Zone99=>:Zone99DATA ,
+	Zone100=>:Zone100DATA,Zone101=>:Zone101DATA,Zone102=>:Zone102DATA,Zone103=>:Zone103DATA,Zone104=>:Zone104DATA,Zone105=>:Zone105DATA,Zone106=>:Zone106DATA,Zone107=>:Zone107DATA,Zone108=>:Zone108DATA,Zone109=>:Zone109DATA,Zone110=>:Zone110DATA,Zone111=>:Zone111DATA,Zone112=>:Zone112DATA,Zone113=>:Zone113DATA,Zone114=>:Zone114DATA,Zone115=>:Zone115DATA,Zone116=>:Zone116DATA,Zone117=>:Zone117DATA,Zone118=>:Zone118DATA,Zone119=>:Zone119DATA,Zone120=>:Zone120DATA,Zone121=>:Zone121DATA,Zone122=>:Zone122DATA,Zone123=>:Zone123DATA,Zone124=>:Zone124DATA,Zone125=>:Zone125DATA,Zone126=>:Zone126DATA,Zone127=>:Zone127DATA,Zone128=>:Zone128DATA,Zone129=>:Zone129DATA,Zone130=>:Zone130DATA,Zone131=>:Zone131DATA,Zone132=>:Zone132DATA,Zone133=>:Zone133DATA,Zone134=>:Zone134DATA,Zone135=>:Zone135DATA,Zone136=>:Zone136DATA,Zone137=>:Zone137DATA,Zone138=>:Zone138DATA,Zone139=>:Zone139DATA,Zone140=>:Zone140DATA,Zone141=>:Zone141DATA,Zone142=>:Zone142DATA,Zone143=>:Zone143DATA,Zone144=>:Zone144DATA,Zone145=>:Zone145DATA,Zone146=>:Zone146DATA,Zone147=>:Zone147DATA,Zone148=>:Zone148DATA,Zone149=>:Zone149DATA,
+	Zone150=>:Zone150DATA,Zone151=>:Zone151DATA,Zone152=>:Zone152DATA,Zone153=>:Zone153DATA,Zone154=>:Zone154DATA,Zone155=>:Zone155DATA,Zone156=>:Zone156DATA,Zone157=>:Zone157DATA,Zone158=>:Zone158DATA,Zone159=>:Zone159DATA,Zone160=>:Zone160DATA,Zone161=>:Zone161DATA,Zone162=>:Zone162DATA,Zone163=>:Zone163DATA,Zone164=>:Zone164DATA,Zone165=>:Zone165DATA,Zone166=>:Zone166DATA,Zone167=>:Zone167DATA,Zone168=>:Zone168DATA,Zone169=>:Zone169DATA,Zone170=>:Zone170DATA,Zone171=>:Zone171DATA,Zone172=>:Zone172DATA,Zone173=>:Zone173DATA,Zone174=>:Zone174DATA,Zone175=>:Zone175DATA,Zone176=>:Zone176DATA,Zone177=>:Zone177DATA,Zone178=>:Zone178DATA,Zone179=>:Zone179DATA,Zone180=>:Zone180DATA,Zone181=>:Zone181DATA,Zone182=>:Zone182DATA,Zone183=>:Zone183DATA,Zone184=>:Zone184DATA,Zone185=>:Zone185DATA,Zone186=>:Zone186DATA,Zone187=>:Zone187DATA,Zone188=>:Zone188DATA,Zone189=>:Zone189DATA,Zone190=>:Zone190DATA,Zone191=>:Zone191DATA,Zone192=>:Zone192DATA,Zone193=>:Zone193DATA,Zone194=>:Zone194DATA,Zone195=>:Zone195DATA,Zone196=>:Zone196DATA,Zone197=>:Zone197DATA,Zone198=>:Zone198DATA,Zone199=>:Zone199DATA,
+	Zone200=>:Zone200DATA,Zone201=>:Zone201DATA,Zone202=>:Zone202DATA,Zone203=>:Zone203DATA,Zone204=>:Zone204DATA,Zone205=>:Zone205DATA,Zone206=>:Zone206DATA,Zone207=>:Zone207DATA,Zone208=>:Zone208DATA,Zone209=>:Zone209DATA,Zone210=>:Zone210DATA,Zone211=>:Zone211DATA,Zone212=>:Zone212DATA,Zone213=>:Zone213DATA,Zone214=>:Zone214DATA,Zone215=>:Zone215DATA,Zone216=>:Zone216DATA,Zone217=>:Zone217DATA,Zone218=>:Zone218DATA,Zone219=>:Zone219DATA,Zone220=>:Zone220DATA,Zone221=>:Zone221DATA,Zone222=>:Zone222DATA,Zone223=>:Zone223DATA,Zone224=>:Zone224DATA,Zone225=>:Zone225DATA,Zone226=>:Zone226DATA,Zone227=>:Zone227DATA,Zone228=>:Zone228DATA,Zone229=>:Zone229DATA,Zone230=>:Zone230DATA,Zone231=>:Zone231DATA,Zone232=>:Zone232DATA,Zone233=>:Zone233DATA,Zone234=>:Zone234DATA,Zone235=>:Zone235DATA,Zone236=>:Zone236DATA,Zone237=>:Zone237DATA,Zone238=>:Zone238DATA,Zone239=>:Zone239DATA,Zone240=>:Zone240DATA,Zone241=>:Zone241DATA,Zone242=>:Zone242DATA,Zone243=>:Zone243DATA,Zone244=>:Zone244DATA,Zone245=>:Zone245DATA,Zone246=>:Zone246DATA,Zone247=>:Zone247DATA,Zone248=>:Zone248DATA,Zone249=>:Zone249DATA,
+	Zone250=>:Zone250DATA,Zone251=>:Zone251DATA,Zone252=>:Zone252DATA,Zone253=>:Zone253DATA,Zone254=>:Zone254DATA,Zone255=>:Zone255DATA,Zone256=>:Zone256DATA,Zone257=>:Zone257DATA,Zone258=>:Zone258DATA,Zone259=>:Zone259DATA,Zone260=>:Zone260DATA,Zone261=>:Zone261DATA,Zone262=>:Zone262DATA,Zone263=>:Zone263DATA,Zone264=>:Zone264DATA,Zone265=>:Zone265DATA,Zone266=>:Zone266DATA,Zone267=>:Zone267DATA,Zone268=>:Zone268DATA,Zone269=>:Zone269DATA,Zone270=>:Zone270DATA,Zone271=>:Zone271DATA,Zone272=>:Zone272DATA,Zone273=>:Zone273DATA,Zone274=>:Zone274DATA,Zone275=>:Zone275DATA,Zone276=>:Zone276DATA,Zone277=>:Zone277DATA,Zone278=>:Zone278DATA,Zone279=>:Zone279DATA,Zone280=>:Zone280DATA,Zone281=>:Zone281DATA,Zone282=>:Zone282DATA,Zone283=>:Zone283DATA,Zone284=>:Zone284DATA,Zone285=>:Zone285DATA,Zone286=>:Zone286DATA,Zone287=>:Zone287DATA,Zone288=>:Zone288DATA,Zone289=>:Zone289DATA,Zone290=>:Zone290DATA,Zone291=>:Zone291DATA,Zone292=>:Zone292DATA,Zone293=>:Zone293DATA,Zone294=>:Zone294DATA,Zone295=>:Zone295DATA,Zone296=>:Zone296DATA,Zone297=>:Zone297DATA,Zone298=>:Zone298DATA,Zone299=>:Zone299DATA,
+	Zone300=>:Zone300DATA,Zone301=>:Zone301DATA,Zone302=>:Zone302DATA,Zone303=>:Zone303DATA,Zone304=>:Zone304DATA,Zone305=>:Zone305DATA,Zone306=>:Zone306DATA,Zone307=>:Zone307DATA,Zone308=>:Zone308DATA,Zone309=>:Zone309DATA,Zone310=>:Zone310DATA,Zone311=>:Zone311DATA,Zone312=>:Zone312DATA,Zone313=>:Zone313DATA,Zone314=>:Zone314DATA,Zone315=>:Zone315DATA,Zone316=>:Zone316DATA,Zone317=>:Zone317DATA,Zone318=>:Zone318DATA,Zone319=>:Zone319DATA,Zone320=>:Zone320DATA,Zone321=>:Zone321DATA,Zone322=>:Zone322DATA,Zone323=>:Zone323DATA,Zone324=>:Zone324DATA,Zone325=>:Zone325DATA,Zone326=>:Zone326DATA,Zone327=>:Zone327DATA,Zone328=>:Zone328DATA,Zone329=>:Zone329DATA,Zone330=>:Zone330DATA,Zone331=>:Zone331DATA,Zone332=>:Zone332DATA,Zone333=>:Zone333DATA,Zone334=>:Zone334DATA,Zone335=>:Zone335DATA,Zone336=>:Zone336DATA,Zone337=>:Zone337DATA,Zone338=>:Zone338DATA,Zone339=>:Zone339DATA,Zone340=>:Zone340DATA,Zone341=>:Zone341DATA,Zone342=>:Zone342DATA,Zone343=>:Zone343DATA,Zone344=>:Zone344DATA,Zone345=>:Zone345DATA,Zone346=>:Zone346DATA,Zone347=>:Zone347DATA,Zone348=>:Zone348DATA,Zone349=>:Zone349DATA,
+	Zone350=>:Zone350DATA,Zone351=>:Zone351DATA,Zone352=>:Zone352DATA,Zone353=>:Zone353DATA,Zone354=>:Zone354DATA,Zone355=>:Zone355DATA,Zone356=>:Zone356DATA,Zone357=>:Zone357DATA,Zone358=>:Zone358DATA,Zone359=>:Zone359DATA,Zone360=>:Zone360DATA,Zone361=>:Zone361DATA,Zone362=>:Zone362DATA,Zone363=>:Zone363DATA,Zone364=>:Zone364DATA,Zone365=>:Zone365DATA,Zone366=>:Zone366DATA,Zone367=>:Zone367DATA,Zone368=>:Zone368DATA,Zone369=>:Zone369DATA,Zone370=>:Zone370DATA,Zone371=>:Zone371DATA,Zone372=>:Zone372DATA,Zone373=>:Zone373DATA,Zone374=>:Zone374DATA,Zone375=>:Zone375DATA,Zone376=>:Zone376DATA,Zone377=>:Zone377DATA,Zone378=>:Zone378DATA,Zone379=>:Zone379DATA,Zone380=>:Zone380DATA,Zone381=>:Zone381DATA,Zone382=>:Zone382DATA,Zone383=>:Zone383DATA,Zone384=>:Zone384DATA,Zone385=>:Zone385DATA,Zone386=>:Zone386DATA,Zone387=>:Zone387DATA,Zone388=>:Zone388DATA,Zone389=>:Zone389DATA,Zone390=>:Zone390DATA,Zone391=>:Zone391DATA,Zone392=>:Zone392DATA,Zone393=>:Zone393DATA,Zone394=>:Zone394DATA,Zone395=>:Zone395DATA,Zone396=>:Zone396DATA,Zone397=>:Zone397DATA,Zone398=>:Zone398DATA,Zone399=>:Zone399DATA,
+	Zone400=>:Zone400DATA,Zone401=>:Zone401DATA,Zone402=>:Zone402DATA,Zone403=>:Zone403DATA,Zone404=>:Zone404DATA,Zone405=>:Zone405DATA,Zone406=>:Zone406DATA,Zone407=>:Zone407DATA,Zone408=>:Zone408DATA,Zone409=>:Zone409DATA,Zone410=>:Zone410DATA,Zone411=>:Zone411DATA,Zone412=>:Zone412DATA,Zone413=>:Zone413DATA,Zone414=>:Zone414DATA,Zone415=>:Zone415DATA,Zone416=>:Zone416DATA,Zone417=>:Zone417DATA,Zone418=>:Zone418DATA]
+
 #Zone id retrieval function
 timezone(x::String) = get(TIMEZONES,x,Zone0)
 
+#For each zone, a dict of year=>(startdate,offset)
+
+#1. get ZoneX dict
+#2. given year, return start < dt < stop ? daylight : standard, otherwise default offset
+# Zone1DATA = (Int=>(Int64,Int64,Int,"ASCIIString"))[1972=>(6000,6002,3600,"CST")]
+
+const FILEPATH = Base.dirname(Base.source_path())
 #These functions retrieves the correct offset/abbreviation for a given time/timezone
-#Should this be a macro? My aim was to do this at parse/compilation time
-#and hopefully make it faster for subsequent calls to the same timezone
-function utcoffset(tz,secs)
-	tz == Zone0 && return 0
-	tzdata = TIMEZONEDATA[TIMEZONEDATA[:,1].==tz,:]
-	ind = findfirst(x::Int64->x>=int64(secs),tzdata[:,3]) - 1
-	return tzdata[ind,4]
+getoffset(tz::Type{Zone0},secs) = 0
+function getoffset{T<:TimeZone}(tz::Type{T},secs)
+	sym = get(DATAFILES,tz,:Zone382DATA)
+	if !isdefined(Datetime,sym)
+		tzdata = readdlm(FILEPATH*"/tzdata/"*string(tz)*"DATA.csv",',')	
+		@eval global $sym = $tzdata
+	else
+		tzdata = eval(sym)
+	end
+	return int64(_findfirst(tzdata,int64(secs),3))
 end
-function abbreviation(tz,secs)
-	tz == Zone0 && return "UTC"
-	tzdata = TIMEZONEDATA[TIMEZONEDATA[:,1].==tz,:]
-	ind = findfirst(x::Int64->x>=int64(secs),tzdata[:,3]) - 1
-	return tzdata[ind,2]
+getabr(tz::Type{Zone0},secs) = "UTC"
+function getabr{T<:TimeZone}(tz::Type{T},secs)
+	tzdata = eval(get(DATAFILES,tz,:Zone382DATA))
+	return _findfirst(tzdata,int64(secs),1)
+end
+function _findfirst(tzdata,secs,col)
+	i = 1
+	while true
+		@inbounds (tzdata[i,2] > secs && break)
+		i += 1
+	end 
+	return tzdata[i+1,col]
 end
 
 #typealiases for most common timezone abbreviations
@@ -198,12 +225,24 @@ typealias YEKT Zone312; export YEKT
 
 const UNIXEPOCH = 62135596800 #Rata Die seconds since 1970-01-01T00:00:00 UTC
 
-#Script to transform timezone.csv => Julia array
-let
-	global TIMEZONEDATA
-	#cd("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/GitHub/DateTime.jl/src")
-	local tzdata = readdlm(Base.dirname(Base.source_path()) * "/timezone.csv",',')
-	const TIMEZONEDATA = hcat(map(x->eval(symbol("Zone" * string(int64(x)))),tzdata[:,1]),
-		tzdata[:,2],map(x->int64(x)+UNIXEPOCH,tzdata[:,3]),
-		map(int,tzdata[:,4]))
-end
+#Script to generate ZoneXDATA.csv files
+# cd("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/GitHub/DateTime.jl/src/test")
+# tzall1 = readdlm("timezone.csv",',')
+# tzall = hcat(map(int,tzall1[:,1]),
+# 		tzall1[:,2],map(x->int64(x)+UNIXEPOCH,tzall1[:,3]),
+# 		map(int,tzall1[:,4]))
+# counter = 1
+# for i = 1:418
+# 	counterstart = counter
+# 	if i == 418
+# 		counter = endof(tzall[:,1]) + 1
+# 	else
+# 		while tzall[counter,1] == i
+# 			counter += 1
+# 		end
+# 	end
+# 	zonedata = tzall[counterstart:counter-1,2:4]
+# 	open("Zone" * string(i) * "DATA","w") do f
+# 		serialize(f,zonedata)
+# 	end
+# end

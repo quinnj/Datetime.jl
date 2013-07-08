@@ -189,9 +189,10 @@ week(y::DateMath,m::DateMath,d::DateMath) = week(year(y),month(m),day(d))
 isleap{C<:Calendar}(y::Year{C}) = _isleap(y)
 isleapday{C<:Calendar}(m::Month{C},d::Day{C}) = m == 2 && d == 29
 lastday{C<:Calendar}(y::Year{C},m::Month{C}) = _lastday(y,m)
-_yeardays{C<:Calendar}(y::Year{C}) = int(365*y + fld(y,4) - fld(y,100) + fld(y,400))
-_monthdays{C<:Calendar}(m::Month{C}) = [0, 31, 61, 92, 122, 153, 184, 214, 245, 275, 306, 337][int(m)-2]
-_daynumbers{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C}) = int(d) + _monthdays(m < 3 ? m + 12 : m) + _yeardays(m < 3 ? y - 1 : y) - 307
+_yeardays{C<:Calendar}(y::Year{C}) = (y = int(y); return 365*y + fld(y,4) - fld(y,100) + fld(y,400))
+const MONTHDAYS = [0, 31, 61, 92, 122, 153, 184, 214, 245, 275, 306, 337]
+_monthdays{C<:Calendar}(m::Month{C}) = (ind = int(m)-2; return MONTHDAYS[ind])
+_daynumbers{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C}) = (m<3 && ((y,m) = (y-1,m+12)); return int(d) + _monthdays(m) + _yeardays(y) - 307)
 dayofweek{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C}) = _daynumbers(y,m,d) % 7 + 1
 dayofyear{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C}) = _daynumbers(y,m,d) - _daynumbers(y,month(1),day(1)) + 1
 function _day2date{C<:Calendar}(x::Day{C},::Type{C})
@@ -304,6 +305,8 @@ convert{C<:Calendar,T<:TimeZone}(::Type{DateTime{C,T}},x::Date{C}) = datetime(x.
 convert{C<:Calendar,T<:TimeZone}(::Type{Date{C}},x::DateTime{C,T}) = date(year(x),month(x),day(x))
 #need to define inter-TimeZone arithmetic (currently crashes)
 isless{C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = isless(int64(x),int64(y))
+isless(x::DateTime,y::Real) = isless(int64(x),int64(y))
+isless(x::Real,y::DateTime) = isless(int64(x),int64(y))
 isequal{C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = isequal(int64(x),int64(y))
 (-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = -(int64(x),int64(y))
 (-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T}) = _datetime(-(int64(x)))
@@ -323,23 +326,16 @@ end
 #default internal constructor
 _datetime{C<:Calendar,T<:TimeZone}(x::Real,::Type{C}=CALENDAR,::Type{T}=TIMEZONE) = convert(DateTime{C,T},int64(x))
 #ISO-compliant constructor; internal, overloaded for different Calendars
-const _juneleap = [1972,1981,1982,1983,1985,1992,1993,1994,1997,2012]
-const _decleap = [1972,1973,1974,1975,1976,1977,1978,1979,1987,1989,1990,1995,1998,2005,2008]
 const _leaps = [62214393599,62230291199,62261827199,62293363199,62324899199,62356521599,62388057599,62419593599,62451129599,62498390399,62529926399,62561462399,62624620799,62703590399,62766748799,62798284799,62845545599,62877081599,62908617599,62956051199,63003311999,63050745599,63271670399,63366364799,63476697599,9223372036854775807]
 const _leaps1 = [62214393600,62230291201,62261827202,62293363203,62324899204,62356521605,62388057606,62419593607,62451129608,62498390409,62529926410,62561462411,62624620812,62703590413,62766748814,62798284815,62845545616,62877081617,62908617618,62956051219,63003312020,63050745621,63271670422,63366364823,63476697624,9223372036854775807]
 #what's a faster way of doing leapseconds? some version of searchsorted? binary search?
-leaps(secs::DateTimeMath)  = findfirst(x::Int64->x>=int64(secs),_leaps) - 1
-leaps1(secs::DateTimeMath) = findfirst(x::Int64->x>=int64(secs),_leaps1) - 1
+leaps(secs::DateTimeMath)  = (i = 1; while _leaps[i] < secs i+=1 end; return i)
+leaps1(secs::DateTimeMath) = (i = 1; while _leaps1[i] < secs i+=1 end; return i)
 function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::Type{T}=TIMEZONE)
-    -1 < s < 61 || error("Invalid datetime")
-    -1 < mi < 60 || error("Invalid datetime")
-    -1 < h < 24 || error("Invalid datetime")
-    0 < d < _lastday(year(y),month(m)) +  1 || error("Invalid datetime")
-    0 < m < 13 || error("Invalid datetime")
-    secs = int(s) + int(60mi) + int(3600h) + int(86400 * _daynumbers(y,m,d))
-    secs -= utcoffset(tz,secs)
+    secs = int(s) + int(60mi) + int(3600h) + int(86400 * _daynumbers(y,m,d)) #rely on period arithmetic?
+    secs -= 1902 < y < 2039 ? getoffset(T,secs) : 0
     secs += y < 1972 ? 0 : s == 60 ? leaps1(secs) : leaps(secs)
-    return _datetime(secs,ISOCalendar,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
+    return _datetime(secs,CALENDAR,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end
 datetime(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::String) = datetime(y,m,d,h,mi,s,timezone(tz))
 datetime{C<:Calendar}(d::Date{C}) = datetime(d.year,d.month,d.day,0,0,0,C,TIMEZONE)
@@ -351,7 +347,7 @@ now{T<:TimeZone}(tz::Type{T}) = unix2datetime(time(),tz)
 # datetime{C<:Calendar,T<:TimeZone}(d::Date{C},t::Time{T}) = datetime(d.year,d.month,d.day,t.hour,t.minute,t.second,C,T)
 #Accessors/Traits/Print/Show
 function string{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})
-    y,m,d,h,mi,s,tz = year(dt),month(dt),day(dt),hour(dt),minute(dt),second(dt),abbreviation(T,dt)
+    y,m,d,h,mi,s,tz = year(dt),month(dt),day(dt),hour(dt),minute(dt),second(dt),getabr(T,dt)
     y =  @sprintf("%04d",int(y))   * "-"
     m =  @sprintf("%02d",int(m))   * "-"
     d =  @sprintf("%02d",int(d))   * "T"
@@ -391,12 +387,12 @@ function _day2day(x::Int64)
     mm = div(5*c+456,153)
     return c - _monthdays(mm)
 end
-year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _day2year(fld(int64(dt)-leaps(dt)+utcoffset(T,dt),86400))
-month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = _day2month(fld(int64(dt)-leaps(dt)+utcoffset(T,dt),86400))
-day{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})      = _day2day(fld(int64(dt)-leaps(dt)+utcoffset(T,dt),86400))
-hour{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = fld((int64(dt) - leaps(dt)+utcoffset(T,dt)),3600) % 24
-minute{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = fld((int64(dt) - leaps(dt)+utcoffset(T,dt)) % 3600, 60)
-second{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = (s = ((int64(dt) - leaps1(dt)+utcoffset(T,dt)) % 60); return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
+year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _day2year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
+month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = _day2month(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
+day{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})      = _day2day(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
+hour{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = fld((int64(dt) - leaps(dt)+getoffset(T,dt)),3600) % 24
+minute{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = fld((int64(dt) - leaps(dt)+getoffset(T,dt)) % 3600, 60)
+second{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = (s = ((int64(dt) - leaps1(dt)+getoffset(T,dt)) % 60); return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
 calendar{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = C
 timezone{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = T
 
