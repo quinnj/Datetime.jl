@@ -115,7 +115,8 @@ month{C<:Calendar}(dt::Date{C}) = dt.month
 day{C<:Calendar}(dt::Date{C})   = dt.day
 #ISO-compliant constructor
 _isleap{C<:Calendar}(y::Year{C}) = (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0))
-_lastday{C<:Calendar}(y::Year{C},m::Month{C}) = (m == 2 ? 28 : 31 - (int(m) - 1) % 7 % 2) + (m == 2 && _isleap(y))
+const DAYSINMONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
+_lastday{C<:Calendar}(y::Year{C},m::Month{C}) = DAYSINMONTH[int(m)] + (m == 2 && _isleap(y))
 function Date{C<:ISOCalendar}(y::Year{C},m::Month{C},d::Day{C},::Type{C})
 	-1 < d < _lastday(y,m) + 1 || error("Invalid date")
 	0 < m < 13 || error("Invalid date")

@@ -23,6 +23,27 @@
 # 	end
 # end
 # @time test() #~1.6s
+# function test()
+# 	t = ymd(2013,7,8)
+# 	for i = 1:1000000
+# 		r = dayofyear(t)
+# 	end
+# end
+# @time test() #~0.62s
+# function test()
+# 	t = ymd(2013,7,8)
+# 	for i = 1:1000000
+# 		r = dayofweek(t)
+# 	end
+# end
+# @time test() #~0.62s
+# function test()
+# 	t = ymd(2013,7,8)
+# 	for i = 1:1000000
+# 		r = week(t)
+# 	end
+# end
+# @time test() #~0.61s
 
 #using Datetime
 function test()
@@ -55,12 +76,12 @@ function test()
 end
 @time test() #0.03s
 function test()
-	y,m,d = year(2000),month(12),day(31)
+	y,m,d = year(2013),month(7),day(8)
 	for i = 1:1000000
 		t = dayofyear(y,m,d)
 	end
 end
-@time test() #~0.65s
+@time test() #~0.65s -could probably be faster
 function test()
 	y,m,d = year(2000),month(12),day(31)
 	for i = 1:1000000
@@ -74,7 +95,7 @@ function test()
 		t = Datetime._day2date(Datetime._daynumbers(y,m,d))
 	end
 end
-@time test() #~1.85s
+@time test() #~1.85s -full => Rata Die numbers back to => date
 function test()
 	y,m,d = year(2000),month(12),day(31)
 	for i = 1:1000000
@@ -88,4 +109,64 @@ function test()
 		t = date(y,m,d)
 	end
 end
-@time test() #~0.6s
+@time test() #~0.54s
+function test()
+	y,m,d = year(2000),month(12),day(31)
+	for i = 1:1000000
+		t = week(y,m,d)
+	end
+end
+@time test() #~0.11s
+
+#arithmetic
+#Calendar
+function test()
+	t = ymd(2013,7,8,"UTC")
+	for i = 1:1000000
+		r = t + days(1)
+	end
+end
+@time test() #~0.03s
+function test()
+	t = ymd(2013,7,8,"UTC")
+	for i = 1:1000000
+		r = t + years(1)
+	end
+end
+@time test() #~2.9s
+function test()
+	t = ymd(2013,7,8,"UTC")
+	for i = 1:1000000
+		r = t + minutes(1)
+	end
+end
+@time test() #~0.027s
+function test()
+	t = ymd(2013,7,8,"UTC")
+	for i = 1:1000000
+		r = t + months(1)
+	end
+end
+@time test() #~3s
+#Datetime
+function test()
+	t = date(2013,7,8)
+	for i = 1:1000000
+		r = t + days(1)
+	end
+end
+@time test() #~2s
+function test()
+	t = date(2013,7,8)
+	for i = 1:1000000
+		r = t + years(1)
+	end
+end
+@time test() #~0.86s
+function test()
+	t = date(2013,7,8)
+	for i = 1:1000000
+		r = t + months(1)
+	end
+end
+@time test() #~1.15s
