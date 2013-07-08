@@ -122,51 +122,107 @@ end
 #Calendar
 function test()
 	t = ymd(2013,7,8,"UTC")
+	tt = years(1)
 	for i = 1:1000000
-		r = t + days(1)
+		r = t + tt
+	end
+end
+@time test() #~3.1s
+function test()
+	t = ymd(2013,7,8,"UTC")
+	tt = months(1)
+	for i = 1:1000000
+		r = t + tt
+	end
+end
+@time test() #~3.07s
+function test()
+	t = ymd(2013,7,8,"UTC")
+	tt = days(1)
+	for i = 1:1000000
+		r = t + tt
 	end
 end
 @time test() #~0.03s
 function test()
 	t = ymd(2013,7,8,"UTC")
+	tt = hours(1)
 	for i = 1:1000000
-		r = t + years(1)
+		r = t + tt
 	end
 end
-@time test() #~2.9s
+@time test() #~0.03s
 function test()
 	t = ymd(2013,7,8,"UTC")
+	tt = minutes(1)
 	for i = 1:1000000
-		r = t + minutes(1)
+		r = t + tt
 	end
 end
-@time test() #~0.027s
+@time test() #~0.03s
 function test()
 	t = ymd(2013,7,8,"UTC")
+	tt = seconds(1)
 	for i = 1:1000000
-		r = t + months(1)
+		r = t + tt
 	end
 end
-@time test() #~3s
+@time test() #~0.03s
+
 #Datetime
 function test()
-	t = date(2013,7,8)
+	t = datetime(2013,7,8,23,59,59)
+	tt = years(1)
 	for i = 1:1000000
-		r = t + days(1)
+		r = t + tt
 	end
 end
-@time test() #~2s
+@time test() #~2.6s
 function test()
-	t = date(2013,7,8)
+	t = datetime(2013,7,8,23,59,59)
+	tt = months(1)
 	for i = 1:1000000
-		r = t + years(1)
+		r = t + tt
 	end
 end
-@time test() #~0.86s
+@time test() #~3.2s
 function test()
-	t = date(2013,7,8)
+	t = datetime(2013,7,8,23,59,59)
+	tt = weeks(1)
 	for i = 1:1000000
-		r = t + months(1)
+		r = t >> tt
 	end
 end
-@time test() #~1.15s
+@time test() #~0.03s
+function test()
+	t = datetime(2013,7,8,23,59,59)
+	tt = days(1)
+	for i = 1:1000000
+		r = t >> tt
+	end
+end
+@time test() #~0.03s
+function test()
+	t = datetime(2013,7,8,23,59,59)
+	tt = hours(1)
+	for i = 1:1000000
+		r = t >> tt
+	end
+end
+@time test() #~0.03s
+function test()
+	t = datetime(2013,7,8,23,59,59)
+	tt = minutes(1)
+	for i = 1:1000000
+		r = t >> tt
+	end
+end
+@time test() #~0.03s
+function test()
+	t = datetime(2013,7,8,23,59,59)
+	tt = seconds(1)
+	for i = 1:1000000
+		r = t >> tt
+	end
+end
+@time test() #~0.03s

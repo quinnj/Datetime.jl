@@ -70,6 +70,7 @@ function _findfirst(tzdata,secs,col)
 	end 
 	return tzdata[i+1,col]
 end
+#function _findbinary(tzdata,secs,col) #binary search for larger datasets
 
 #typealiases for most common timezone abbreviations
 #Used most common/populated zone where multiple timezones used same abbreviation
