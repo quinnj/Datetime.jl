@@ -35,9 +35,9 @@ const DATAFILES = (DataType=>Symbol)[Zone0=>:Zone0DATA  ,Zone1=>:Zone1DATA  ,Zon
 
 #Zone id retrieval function
 timezone(x::String) = get(TIMEZONES,x,Zone0)
+const UNIXEPOCH = 62135596800 #Rata Die seconds since 1970-01-01T00:00:00 UTC
 
 #For each zone, a dict of year=>(startdate,offset)
-
 #1. get ZoneX dict
 #2. given year, return start < dt < stop ? daylight : standard, otherwise default offset
 # Zone1DATA = (Int=>(Int64,Int64,Int,"ASCIIString"))[1972=>(6000,6002,3600,"CST")]
@@ -48,7 +48,9 @@ getoffset(tz::Type{Zone0},secs) = 0
 function getoffset{T<:TimeZone}(tz::Type{T},secs)
 	sym = get(DATAFILES,tz,:Zone382DATA)
 	if !isdefined(Datetime,sym)
-		tzdata = readdlm(FILEPATH*"/tzdata/"*string(tz)*"DATA.csv",',')	
+		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
+			tzdata = deserialize(ff)
+		end
 		@eval global $sym = $tzdata
 	else
 		tzdata = eval(sym)
@@ -223,14 +225,37 @@ typealias WET Zone299; export WET
 typealias YAKT Zone318; export YAKT
 typealias YEKT Zone312; export YEKT
 
-const UNIXEPOCH = 62135596800 #Rata Die seconds since 1970-01-01T00:00:00 UTC
-
 #Script to generate ZoneXDATA.csv files
 # cd("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/GitHub/DateTime.jl/src/test")
-# tzall1 = readdlm("timezone.csv",',')
-# tzall = hcat(map(int,tzall1[:,1]),
-# 		tzall1[:,2],map(x->int64(x)+UNIXEPOCH,tzall1[:,3]),
-# 		map(int,tzall1[:,4]))
+# import Base.serialize
+# function serialize(s, a::Array)
+#     Base.writetag(s, Array)
+#     elty = eltype(a)
+#     serialize(s, elty)
+#     serialize(s, size(a))
+#     if isbits(elty)
+#         Base.serialize_array_data(s, a)
+#     else
+#         for i = 1:length(a)
+#             if isdefined(a, i)
+#             	if typeof(a[i]) <: String
+# 	            	t = a[i]
+# 	            	off = t.offset+1
+# 	                serialize(s, t.string[off:(off+t.endof-1)])
+# 	            else
+# 	            	serialize(s, a[i])
+# 	            end
+#             else
+#                 Base.writetag(s, UndefRefTag)
+#             end
+#         end
+#     end
+# end
+# const UNIXEPOCH = 62135596800
+# tzall = readdlm("timezone.csv",',')
+# tzall[:,1] = map(int,tzall[:,1])
+# tzall[:,3] = map(x->int64(x)+UNIXEPOCH,tzall[:,3])
+# tzall[:,4] = map(int,tzall[:,4])
 # counter = 1
 # for i = 1:418
 # 	counterstart = counter

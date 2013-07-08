@@ -45,41 +45,47 @@ function test()
 		b = datetime(y,m,d,h,mi,s,PST)
 	end
 end
-@time test() #~4.64s
+@time test() #~4.42s
 
 function test()
+	y,m = year(2000),month(12)
 	for i = 1:1000000
-		t = lastday(date(2000+i,i%12+1,i%30+1))
+		t = lastday(y,m)
 	end
 end
-@time test()
+@time test() #0.03s
 function test()
+	y,m,d = year(2000),month(12),day(31)
 	for i = 1:1000000
-		t = dayofyear(date(2000+i,i%12+1,i%30+1))
+		t = dayofyear(y,m,d)
 	end
 end
-@time test()
+@time test() #~0.65s
 function test()
+	y,m,d = year(2000),month(12),day(31)
 	for i = 1:1000000
-		t = dayofweek(date(2000+i,i%12,i%30))
+		t = dayofweek(y,m,d)
 	end
 end
-@time test()
+@time test() #~0.09s
 function test()
+	y,m,d = year(2000),month(12),day(31)
 	for i = 1:1000000
-		t = _day2date(_daynumbers(date(2000+i,i%12,i%30)))
+		t = Datetime._day2date(Datetime._daynumbers(y,m,d))
 	end
 end
-@time test()
+@time test() #~1.85s
 function test()
+	y,m,d = year(2000),month(12),day(31)
 	for i = 1:1000000
-		t = _daynumbers(date(2000+i,i%12,i%30))
+		t = Datetime._daynumbers(y,m,d)
 	end
 end
-@time test()
+@time test() #~0.1s
 function test()
+	y,m,d = year(2000),month(12),day(31)
 	for i = 1:1000000
-		t = date(2000+i,12,30)
+		t = date(y,m,d)
 	end
 end
-@time test()
+@time test() #~0.6s
