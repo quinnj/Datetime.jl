@@ -55,7 +55,7 @@ function test()
 end
 push!(perf,"dayofyear DateTime")
 push!(timing,test())
-push!(baseline,1.3)
+push!(baseline,0.57)
 function test()
 	tic()
 	dt = datetime(2013,7,8,23,59,59)

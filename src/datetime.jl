@@ -398,7 +398,7 @@ isleap{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = isleap(year(dt))
 isleapday{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})  = isleapday(month(dt),day(dt))
 lastday{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = lastday(year(dt),month(dt))
 dayofweek{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})  = (fld(int64(dt),86400) + 1) % 7
-dayofyear{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})  = dayofyear(year(dt),month(dt),day(dt))
+dayofyear{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})  = int64(fld(int64(dt)-_yearsecs(year(dt)),86400))+1
 week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})       = week(year(dt),month(dt),day(dt))
 @vectorize_1arg DateTime isleap
 @vectorize_1arg DateTime isleapday
