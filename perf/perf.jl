@@ -1,262 +1,272 @@
-# using Calendar
-# function test()
-# 	for i = 1:1000000
-# 		t = ymd_hms(1982,6,30,23,59,59)
-# 	end
-# end
-# @time test() #~17.1s
-# function test()
-# 	for i = 1:1000000
-# 		t = ymd_hms(1982,6,30,23,59,59,"UTC")
-# 	end
-# end
-# @time test() #~0.87s
-# function test()
-# 	for i = 1:1000000
-# 		t = ymd_hms(1982,6,30,23,59,59,"VET")
-# 	end
-# end
-# @time test() #~0.93s
-# function test()
-# 	for i = 1:1000000
-# 		t = ymd_hms(1982,6,30,23,59,59,"PST")
-# 	end
-# end
-# @time test() #~1.6s
-# function test()
-# 	t = ymd(2013,7,8)
-# 	for i = 1:1000000
-# 		r = dayofyear(t)
-# 	end
-# end
-# @time test() #~0.62s
-# function test()
-# 	t = ymd(2013,7,8)
-# 	for i = 1:1000000
-# 		r = dayofweek(t)
-# 	end
-# end
-# @time test() #~0.62s
-# function test()
-# 	t = ymd(2013,7,8)
-# 	for i = 1:1000000
-# 		r = week(t)
-# 	end
-# end
-# @time test() #~0.61s
-
-#using Datetime
+perf = ref(String)
+timing = ref(Float64)
+baseline = ref(Float64)
 function test()
+	tic()
 	y,m,d,h,mi,s = year(1982),month(6),day(30),hour(23),minute(59),second(59)
 	for i = 1:1000000
 		b = datetime(y,m,d,h,mi,s) #UTC
 	end
+	return toq()
 end
-@time test() #~0.63s
+push!(perf,"Create UTC DateTime")
+push!(timing,test())
+push!(baseline,0.193)
 function test()
+	tic()
 	y,m,d,h,mi,s = year(1982),month(6),day(30),hour(23),minute(59),second(59)
 	for i = 1:1000000
 		b = datetime(y,m,d,h,mi,s,VET)
 	end
+	return toq()
 end
-@time test() #~1.4s
+push!(perf,"Create VET DateTime")
+push!(timing,test())
+push!(baseline,1.17)
 function test()
+	tic()
 	y,m,d,h,mi,s = year(1982),month(6),day(30),hour(23),minute(59),second(59)
 	for i = 1:1000000
 		b = datetime(y,m,d,h,mi,s,PST)
 	end
+	return toq()
 end
-@time test() #~4.42s
-
+push!(perf,"Create PST DateTime")
+push!(timing,test())
+push!(baseline,4.42)
 function test()
-	y,m = year(2000),month(12)
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
 	for i = 1:1000000
-		t = lastday(y,m)
+		t = lastday(dt)
 	end
+	return toq()
 end
-@time test() #0.004s
+push!(perf,"lastday DateTime")
+push!(timing,test())
+push!(baseline,0.62)
 function test()
-	y,m,d = year(2013),month(7),day(8)
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
 	for i = 1:1000000
-		t = dayofyear(y,m,d)
+		t = dayofyear(dt)
 	end
+	return toq()
 end
-@time test() #~0.33s -could probably be faster
+push!(perf,"dayofyear DateTime")
+push!(timing,test())
+push!(baseline,1.3)
 function test()
-	y,m,d = year(2000),month(12),day(31)
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
 	for i = 1:1000000
-		t = dayofweek(y,m,d)
+		t = dayofweek(dt)
 	end
+	return toq()
 end
-@time test() #~0.15s
+push!(perf,"dayofweek DateTime")
+push!(timing,test())
+push!(baseline,0.006)
 function test()
-	y,m,d = year(2000),month(12),day(31)
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
 	for i = 1:1000000
-		t = Datetime._day2date(Datetime._daynumbers(y,m,d))
+		t = week(dt)
 	end
+	return toq()
 end
-@time test() #~0.47s -full => Rata Die numbers back to => date
+push!(perf,"week DateTime")
+push!(timing,test())
+push!(baseline,1.3)
 function test()
-	y,m,d = year(2000),month(12),day(31)
-	for i = 1:1000000
-		t = Datetime._daynumbers(y,m,d)
-	end
-end
-@time test() #~0.15
-function test()
-	y,m,d = year(2000),month(12),day(31)
-	for i = 1:1000000
-		t = date(y,m,d)
-	end
-end
-@time test() #~0.009s
-function test()
-	y,m,d = year(2000),month(12),day(31)
-	for i = 1:1000000
-		t = week(y,m,d)
-	end
-end
-@time test() #~0.19s
-
-#arithmetic
-#Calendar
-# function test()
-# 	t = ymd(2013,7,8,"UTC")
-# 	tt = years(1)
-# 	for i = 1:1000000
-# 		r = t + tt
-# 	end
-# end
-# @time test() #~3.1s
-# function test()
-# 	t = ymd(2013,7,8,"UTC")
-# 	tt = months(1)
-# 	for i = 1:1000000
-# 		r = t + tt
-# 	end
-# end
-# @time test() #~3.07s
-# function test()
-# 	t = ymd(2013,7,8,"UTC")
-# 	tt = days(1)
-# 	for i = 1:1000000
-# 		r = t + tt
-# 	end
-# end
-# @time test() #~0.03s
-# function test()
-# 	t = ymd(2013,7,8,"UTC")
-# 	tt = hours(1)
-# 	for i = 1:1000000
-# 		r = t + tt
-# 	end
-# end
-# @time test() #~0.03s
-# function test()
-# 	t = ymd(2013,7,8,"UTC")
-# 	tt = minutes(1)
-# 	for i = 1:1000000
-# 		r = t + tt
-# 	end
-# end
-# @time test() #~0.03s
-# function test()
-# 	t = ymd(2013,7,8,"UTC")
-# 	tt = seconds(1)
-# 	for i = 1:1000000
-# 		r = t + tt
-# 	end
-# end
-# @time test() #~0.03s
-
-#Datetime
-function test()
+	tic()
 	t = datetime(2013,7,8,23,59,59)
 	tt = years(1)
 	for i = 1:1000000
 		r = t >> tt
 	end
+	return toq()
 end
-@time test() #~0.76s
+push!(perf,"+ years(1) DateTime")
+push!(timing,test())
+push!(baseline,0.8)
 function test()
+	tic()
 	t = datetime(2013,7,8,23,59,59)
 	tt = months(1)
 	for i = 1:1000000
 		r = t + tt
 	end
+	return toq()
 end
-@time test() #~1.11s
+push!(perf,"+ months(1) DateTime")
+push!(timing,test())
+push!(baseline,1.17)
 function test()
+	tic()
 	t = datetime(2013,7,8,23,59,59)
 	tt = weeks(1)
 	for i = 1:1000000
 		r = t >> tt
 	end
+	return toq()
 end
-@time test() #~0.05s
+push!(perf,"+ weeks(1) DateTime")
+push!(timing,test())
+push!(baseline,0.05)
 function test()
+	tic()
 	t = datetime(2013,7,8,23,59,59)
 	tt = days(1)
 	for i = 1:1000000
 		r = t >> tt
 	end
+	return toq()
 end
-@time test() #~0.03s
+push!(perf,"+ days(1) DateTime")
+push!(timing,test())
+push!(baseline,0.05)
 function test()
+	tic()
 	t = datetime(2013,7,8,23,59,59)
 	tt = hours(1)
 	for i = 1:1000000
 		r = t >> tt
 	end
+	return toq()
 end
-@time test() #~0.03s
+push!(perf,"+ hours(1) DateTime")
+push!(timing,test())
+push!(baseline,0.05)
 function test()
+	tic()
 	t = datetime(2013,7,8,23,59,59)
 	tt = minutes(1)
 	for i = 1:1000000
 		r = t >> tt
 	end
+	return toq()
 end
-@time test() #~0.03s
+push!(perf,"+ minutes(1) DateTime")
+push!(timing,test())
+push!(baseline,0.05)
 function test()
+	tic()
 	t = datetime(2013,7,8,23,59,59)
 	tt = seconds(1)
 	for i = 1:1000000
 		r = t >> tt
 	end
+	return toq()
 end
-@time test() #~0.03s
+push!(perf,"+ seconds(1) DateTime")
+push!(timing,test())
+push!(baseline,0.05)
 
 #Date
 function test()
+	tic()
+	y,m,d = year(1982),month(6),day(30)
+	for i = 1:1000000
+		b = date(y,m,d)
+	end
+	return toq()
+end
+push!(perf,"Create Date")
+push!(timing,test())
+push!(baseline,0.009)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = lastday(dt)
+	end
+	return toq()
+end
+push!(perf,"lastday Date")
+push!(timing,test())
+push!(baseline,0.003)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = dayofyear(dt)
+	end
+	return toq()
+end
+push!(perf,"dayofyear Date")
+push!(timing,test())
+push!(baseline,0.34)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = dayofweek(dt)
+	end
+	return toq()
+end
+push!(perf,"dayofweek Date")
+push!(timing,test())
+push!(baseline,0.17)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = week(dt)
+	end
+	return toq()
+end
+push!(perf,"week Date")
+push!(timing,test())
+push!(baseline,0.19)
+function test()
+	tic()
 	t = date(2013,7,8)
 	tt = years(1)
 	for i = 1:1000000
 		r = t + tt
 	end
+	return toq()
 end
-@time test() #~0.18s
+push!(perf,"+ years(1) Date")
+push!(timing,test())
+push!(baseline,0.21)
 function test()
+	tic()
 	t = date(2013,7,8)
 	tt = months(1)
 	for i = 1:1000000
 		r = t + tt
 	end
+	return toq()
 end
-@time test() #~0.22s
+push!(perf,"+ months(1) Date")
+push!(timing,test())
+push!(baseline,0.23)
 function test()
+	tic()
 	t = date(2013,7,8)
 	tt = weeks(1)
 	for i = 1:1000000
 		r = t + tt
 	end
+	return toq()
 end
-@time test() #~0.57s
+push!(perf,"+ weeks(1) Date")
+push!(timing,test())
+push!(baseline,0.61)
 function test()
+	tic()
 	t = date(2013,7,8)
 	tt = days(1)
 	for i = 1:1000000
 		r = t + tt
 	end
+	return toq()
 end
-@time test() #~0.56s
+push!(perf,"+ days(1) Date")
+push!(timing,test())
+push!(baseline,0.6)
+#results
+results = [perf timing baseline]
+println(results)

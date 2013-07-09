@@ -8,7 +8,7 @@ export Calendar, ISOCalendar, TimeZone, Date, DateTime, DateRange1,
     years,months,weeks,days,hours,minutes,seconds,
     addwrap, subwrap, Date, date, unix2datetime, datetime,
     isleap, isleapday, lastday, dayofweek, dayofyear, week, isdate,
-    now, calendar, timezone, setcalendar, settimezone
+    now, calendar, timezone, setcalendar, settimezone, timezone
 
 abstract AbstractTime
 abstract Calendar <: AbstractTime
@@ -296,16 +296,17 @@ convert{C<:Calendar,T<:TimeZone}(::Type{Int64},x::DateTime{C,T}) = Base.box(Int6
 convert{C<:Calendar,T<:TimeZone}(::Type{DateTime{C,T}},x::Real) = convert(DateTime{C,T},int64(x))
 convert{C<:Calendar,T<:TimeZone,R<:Real}(::Type{R}, x::DateTime{C,T}) = convert(R,int64(x))
 promote_rule{C<:Calendar,T<:TimeZone,R<:Real}(::Type{DateTime{C,T}},::Type{R}) = R
+promote_rule{C<:Calendar,T<:TimeZone,TT<:TimeZone}(::Type{DateTime{C,T}},::Type{DateTime{C,TT}}) = DateTime{C,Zone0}
+convert{C<:Calendar,T<:TimeZone,TT<:TimeZone}(::Type{DateTime{C,T}},x::DateTime{C,TT}) = _datetime(int64(x),C,T)
 promote_rule{C<:Calendar,T<:TimeZone}(::Type{DateTime{C,T}},::Type{Date{C}}) = Date{C}
 convert{C<:Calendar,T<:TimeZone}(::Type{DateTime{C,T}},x::Date{C}) = datetime(x.year,x.month,x.day,0,0,0,C,TIMEZONE)
 convert{C<:Calendar,T<:TimeZone}(::Type{Date{C}},x::DateTime{C,T}) = date(year(x),month(x),day(x))
-#need to define inter-TimeZone arithmetic (currently crashes)
 isless{C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = isless(int64(x),int64(y))
 isless(x::DateTime,y::Real) = isless(int64(x),int64(y))
 isless(x::Real,y::DateTime) = isless(int64(x),int64(y))
 isequal{C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = isequal(int64(x),int64(y))
 (-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = seconds(-(int64(x),int64(y)))
-(+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T}) = x
+(+)(x::DateTime) = x
 (-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T}) = datetime(-year(x),month(x),day(x),hour(x),minute(x),second(x),T)
 for op in (:+,:*,:/)
     @eval ($op)(x::DateTime,y::DateTime) = Base.no_op_err($op,"DateTime")
@@ -314,6 +315,7 @@ end
 isequal(x::DateTime,y::Real) = isequal(promote(x,y)...)
 isequal(x::Real,y::DateTime) = isequal(promote(x,y)...)
 for op in (:-,:isless,:isequal)
+	@eval ($op){C<:Calendar,T<:TimeZone,TT<:TimeZone}(x::DateTime{C,T},y::DateTime{C,TT}) = ($op)(promote(x,y)...)
     @eval ($op)(x::DateTimeDate,y::DateTimeDate) = ($op)(promote(x,y)...)
 end
 (+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DatePeriod) = convert(Date{C},x) + y
@@ -322,14 +324,15 @@ end
 (-){C<:Calendar,T<:TimeZone}(y::DatePeriod,x::DateTime{C,T}) = convert(Date{C},x) - y
 #default internal constructor
 _datetime{C<:Calendar,T<:TimeZone}(x::Real,::Type{C}=CALENDAR,::Type{T}=TIMEZONE) = convert(DateTime{C,T},int64(x))
+timezone{C<:Calendar,T<:TimeZone,TT<:TimeZone}(dt::DateTime{C,T},tz::Type{TT}) = _datetime(int64(dt),C,TT)
 #ISO-compliant constructor; internal, overloaded for different Calendars
 const _leaps = [62214393599,62230291199,62261827199,62293363199,62324899199,62356521599,62388057599,62419593599,62451129599,62498390399,62529926399,62561462399,62624620799,62703590399,62766748799,62798284799,62845545599,62877081599,62908617599,62956051199,63003311999,63050745599,63271670399,63366364799,63476697599,9223372036854775807]
 const _leaps1 = [62214393600,62230291201,62261827202,62293363203,62324899204,62356521605,62388057606,62419593607,62451129608,62498390409,62529926410,62561462411,62624620812,62703590413,62766748814,62798284815,62845545616,62877081617,62908617618,62956051219,63003312020,63050745621,63271670422,63366364823,63476697624,9223372036854775807]
-leaps(secs::DateTimeMath)  = (i = 1; while _leaps[i] < secs i+=1 end; return i)
-leaps1(secs::DateTimeMath) = (i = 1; while _leaps1[i] < secs i+=1 end; return i)
+leaps(secs::DateTimeMath)  = (i = 1; while true; @inbounds (_leaps[i]  >= secs && break); i+=1 end; return i-1)
+leaps1(secs::DateTimeMath) = (i = 1; while true; @inbounds (_leaps1[i] >= secs && break); i+=1 end; return i-1)
 function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::Type{T}=TIMEZONE)
-    secs = int(s) + int(60mi) + int(3600h) + int(86400 * _daynumbers(y,m,d)) #rely on period arithmetic?
-    secs -= 1902 < y < 2039 ? getoffset(T,secs) : 0
+    secs = int(s) + 60mi + 3600h + 86400*_daynumbers(y,m,d)
+    secs -= 1902 < y < 2038 ? getoffset(T,secs) : 0
     secs += y < 1972 ? 0 : s == 60 ? leaps1(secs) : leaps(secs)
     return _datetime(secs,CALENDAR,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end
