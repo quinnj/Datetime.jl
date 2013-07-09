@@ -399,7 +399,14 @@ isleapday{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})  = isleapday(month(dt),day
 lastday{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = lastday(year(dt),month(dt))
 dayofweek{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})  = (fld(int64(dt),86400) + 1) % 7
 dayofyear{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})  = int64(fld(int64(dt)-_yearsecs(year(dt)),86400))+1
-week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})       = week(year(dt),month(dt),day(dt))
+function week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})
+	rdn = fld(int64(dt),86400)
+	w = fld(rdn,7) % 20871 #20871 = # of weeks in 400 years
+	c = fld((w + (w >= 10435)),5218) #need # of centuries to choose right intercept below
+	w = (w + (w >= 10435)) % 5218 #5218 = # of weeks in century
+	w = (w*28+(15,23,3,11)[c+1]) % 1461
+	return fld(w,28) + 1
+end
 @vectorize_1arg DateTime isleap
 @vectorize_1arg DateTime isleapday
 @vectorize_1arg DateTime lastday

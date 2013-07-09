@@ -156,6 +156,28 @@ b = datetime(1982,6,30,23,59,60)
 c = datetime(1982,7,1,0,0,0)
 @assert c - b == 1
 @assert b - a == 1
+dt = datetime(1999,12,27,0,0,0)
+check = (52,52,52,52,52,52,52,1,1,1,1,1,1,1,2,2,2,2,2,2,2)
+for i = 1:21
+	@assert week(dt) == check[i]
+	dt = dt >> day(1)
+end
+dt = datetime(2000,12,25,0,0,0)
+for i = 1:21
+	@assert week(dt) == check[i]
+	dt = dt >> day(1)
+end
+dt = datetime(2030,12,23,0,0,0)
+for i = 1:21
+	@assert week(dt) == check[i]
+	dt = dt >> day(1)
+end
+dt = datetime(2004,12,20,0,0,0)
+check = (52,52,52,52,52,52,52,53,53,53,53,53,53,53,1,1,1,1,1,1,1)
+for i = 1:21
+	@assert week(dt) == check[i]
+	dt = dt >> day(1)
+end
 
 #Timezone
 TZ = CST

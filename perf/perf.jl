@@ -77,7 +77,7 @@ function test()
 end
 push!(perf,"week DateTime")
 push!(timing,test())
-push!(baseline,1.3)
+push!(baseline,0.02)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
