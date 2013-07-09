@@ -14,15 +14,15 @@ abstract AbstractTime
 abstract Calendar <: AbstractTime
 abstract ISOCalendar <: Calendar
 #Set the default calendar to use; overriding this will affect module-wide defaults
-CALENDAR = ISOCalendar
-setcalendar{C<:Calendar}(cal::Type{C}) = global CALENDAR = cal
+const CALENDAR = ISOCalendar
+setcalendar{C<:Calendar}(cal::Type{C}) = (global CALENDAR = cal)
 
 abstract TimeZone <: AbstractTime
 include("timezone.jl")
 #Set the default timezone to use; overriding this will affect module-wide defaults
 #typealias UTC Zone0
-TIMEZONE = UTC
-settimezone{T<:TimeZone}(tz::Type{T}) = global TIMEZONE = tz
+const TIMEZONE = UTC
+settimezone{T<:TimeZone}(tz::Type{T}) = (global TIMEZONE = tz)
 
 abstract TimeType <: AbstractTime
 #immutable Date{C <: Calendar}						<: TimeType
@@ -49,46 +49,47 @@ convert{P<:Period}(::Type{P},x::Int32) = Base.box(P,Base.unbox(Int32,x))
 convert{P<:Period}(::Type{Int32},x::P) = Base.box(Int32,Base.unbox(P,x))
 convert{P<:Period}(::Type{P},x::Real) = convert(P,int32(x))
 convert{R<:Real}(::Type{R},x::Period) = convert(R,int32(x))
+convert{P<:Period}(::Type{P},x::P) = x
 promote_rule{P<:Period,R<:Real}(::Type{P},::Type{R}) = R
-promote_rule{A<:DatePeriod,B<:DatePeriod}(::Type{A},::Type{B}) = 
+promote_rule{A<:Period,B<:Period}(::Type{A},::Type{B}) =
+	A == Second{CALENDAR} || B == Second{CALENDAR} ? Second{CALENDAR} :
+    A == Minute{CALENDAR} || B == Minute{CALENDAR} ? Minute{CALENDAR} : 
+    A == Hour{CALENDAR}   || B == Hour{CALENDAR}   ? Hour{CALENDAR}   :
 	A == Day{CALENDAR}    || B == Day{CALENDAR}    ? Day{CALENDAR}    : 
     A == Week{CALENDAR}   || B == Week{CALENDAR}   ? Week{CALENDAR}   : Month{CALENDAR}
-promote_rule{A<:TimePeriod,B<:TimePeriod}(::Type{A},::Type{B}) = 
-	A == Second{CALENDAR} || B == Second{CALENDAR} ? Second{CALENDAR} :
-    A == Minute{CALENDAR} || B == Minute{CALENDAR} ? Minute{CALENDAR} : Hour{CALENDAR}
 #conversion rules between periods; ISO/Greg/Julian-specific, but we define as the catchall for all Calendars
-convert{C<:Calendar}(::Type{Month{C}},x::Year{C})    = convert(Month{C},int32(x)*12)
-convert{C<:Calendar}(::Type{Week{C}},x::Year{C})     = (info("Default conversion used: 1 year => 52 weeks"); convert(Week{C},int32(x)*52))
-convert{C<:Calendar}(::Type{Day{C}},x::Year{C})      = (info("Default conversion used: 1 year => 365 days"); convert(Day{C},int32(x)*365))
-convert{C<:Calendar}(::Type{Week{C}},x::Month{C})    = (info("Default conversion used: 1 month => 4 weeks"); convert(Week{C},int32(x)*4))
-convert{C<:Calendar}(::Type{Day{C}},x::Month{C})     = (info("Default conversion used: 1 month => 30 days"); convert(Day{C},int32(x)*30))
-convert{C<:Calendar}(::Type{Day{C}},x::Week{C})      = convert(Day{C},    int32(x)*7)
-convert{C<:Calendar}(::Type{Hour{C}},x::Week{C})     = convert(Hour{C},   int32(x)*168)
-convert{C<:Calendar}(::Type{Minute{C}},x::Week{C})   = convert(Minute{C}, int32(x)*10080)
-convert{C<:Calendar}(::Type{Second{C}},x::Week{C})   = convert(Second{C}, int32(x)*604800)
-convert{C<:Calendar}(::Type{Hour{C}},x::Day{C})      = convert(Hour{C},   int32(x)*24)
-convert{C<:Calendar}(::Type{Minute{C}},x::Day{C})    = convert(Minute{C}, int32(x)*1440)
-convert{C<:Calendar}(::Type{Second{C}},x::Day{C})    = convert(Second{C}, int32(x)*86400)
-convert{C<:Calendar}(::Type{Minute{C}},x::Hour{C})   = convert(Minute{C}, int32(x)*60)
-convert{C<:Calendar}(::Type{Second{C}},x::Hour{C})   = convert(Second{C}, int32(x)*3600)
-convert{C<:Calendar}(::Type{Second{C}},x::Minute{C}) = convert(Second{C}, int32(x)*60)
-
+convert{C<:Calendar}(::Type{Month{C}},x::Year{C})    = convert(Month{C},  int32(12x))
+convert{C<:Calendar}(::Type{Week{C}},x::Year{C})     = convert(Week{C},   int32(52x))
+convert{C<:Calendar}(::Type{Day{C}},x::Year{C})      = convert(Day{C},    int32(365x))
+convert{C<:Calendar}(::Type{Day{C}},x::Week{C})      = convert(Day{C},    int32(7x))
+convert{C<:Calendar}(::Type{Hour{C}},x::Year{C})     = convert(Hour{C},   int32(8760x))
+convert{C<:Calendar}(::Type{Hour{C}},x::Week{C})     = convert(Hour{C},   int32(168x))
+convert{C<:Calendar}(::Type{Hour{C}},x::Day{C})      = convert(Hour{C},   int32(24x))
+convert{C<:Calendar}(::Type{Minute{C}},x::Year{C})   = convert(Minute{C}, int32(525600x)) #Rent anybody?
+convert{C<:Calendar}(::Type{Minute{C}},x::Week{C})   = convert(Minute{C}, int32(10080x))
+convert{C<:Calendar}(::Type{Minute{C}},x::Day{C})    = convert(Minute{C}, int32(1440x))
+convert{C<:Calendar}(::Type{Minute{C}},x::Hour{C})   = convert(Minute{C}, int32(60x))
+convert{C<:Calendar}(::Type{Second{C}},x::Year{C})   = convert(Second{C}, int32(31536000x))
+convert{C<:Calendar}(::Type{Second{C}},x::Week{C})   = convert(Second{C}, int32(604800x))
+convert{C<:Calendar}(::Type{Second{C}},x::Day{C})    = convert(Second{C}, int32(86400x))
+convert{C<:Calendar}(::Type{Second{C}},x::Hour{C})   = convert(Second{C}, int32(3600x))
+convert{C<:Calendar}(::Type{Second{C}},x::Minute{C}) = convert(Second{C}, int32(60x))
 #Constructors; default to CALENDAR; with (s) too cutesy? seems natural/expected though
-years   = (year(n::PeriodMath)    = convert(Year{CALENDAR},n))
-months  = (month(n::PeriodMath)   = convert(Month{CALENDAR},n))
-weeks   = (week(n::PeriodMath)    = convert(Week{CALENDAR},n))
-days    = (day(n::PeriodMath) 	= convert(Day{CALENDAR},n))
-hours   = (hour(n::PeriodMath)    = convert(Hour{CALENDAR},n))
-minutes = (minute(n::PeriodMath)  = convert(Minute{CALENDAR},n))
-seconds = (second(n::PeriodMath)  = convert(Second{CALENDAR},n))
+years   = (year(x::PeriodMath)    = convert(Year{CALENDAR},x))
+months  = (month(x::PeriodMath)   = convert(Month{CALENDAR},x))
+weeks   = (week(x::PeriodMath)    = convert(Week{CALENDAR},x))
+days    = (day(x::PeriodMath) 	  = convert(Day{CALENDAR},x))
+hours   = (hour(x::PeriodMath)    = convert(Hour{CALENDAR},x))
+minutes = (minute(x::PeriodMath)  = convert(Minute{CALENDAR},x))
+seconds = (second(x::PeriodMath)  = convert(Second{CALENDAR},x))
 #Print/show/traits
 print(x::Period) = print(int32(x))
 show(io::IO,x::Period) = print(x)
 string(x::Period) = string(int32(x))
 typemin{P<:Period}(::Type{P}) = convert(P,typemin(Int32))
 typemax{P<:Period}(::Type{P}) = convert(P,typemax(Int32))
-zero{P<:Period}(::Union(Type{P},P)) = convert(P,0)
-one{P<:Period}(::Union(Type{P},P)) = convert(P,1)
+zero{P<:Period}(::Union(Type{P},P)) = convert(P,int32(0))
+one{P<:Period}(::Union(Type{P},P)) = convert(P,int32(1))
 #Period Arithmetic:
 isless{P<:Period}(x::P,y::P) = isless(int32(x),int32(y))
 isless(x::PeriodMath,y::PeriodMath) = isless(promote(x,y)...)
@@ -97,8 +98,7 @@ isequal(x::Real,y::Period) = isequal(promote(x,y)...)
 (-){P<:Period}(x::P) = convert(P,-int32(x))
 for op in (:+,:-,:*,:/,:%,:fld)
 	@eval begin
-	($op){P<:DatePeriod}(x::P,y::P) = convert(P,($op)(int32(x),int32(y)))
-	($op){P<:TimePeriod}(x::P,y::P) = convert(P,($op)(int32(x),int32(y)))
+	($op){P<:Period}(x::P,y::P) = convert(P,($op)(int32(x),int32(y)))
 	($op){P<:Period}(x::P,y::Real) = ($op)(promote(x,y)...)
 	($op){P<:Period}(x::Real,y::P) = ($op)(promote(x,y)...)
 	!contains((/,%,fld),$op) && ( ($op)(x::Period,y::Period) = ($op)(promote(x,y)...) )
@@ -117,17 +117,16 @@ immutable Date{C<:Calendar} <: TimeType
 	month::Month{C}
 	day::Day{C}
 end
-year{C<:Calendar}(dt::Date{C})  = dt.year
-month{C<:Calendar}(dt::Date{C}) = dt.month
-day{C<:Calendar}(dt::Date{C})   = dt.day
+year(dt::Date)  = dt.year
+month(dt::Date) = dt.month
+day(dt::Date)   = dt.day
 #ISO-compliant constructor
-_isleap{C<:Calendar}(y::Year{C}) = (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0))
+_isleap(y::Year) = (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0))
 const DAYSINMONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
-_lastday{C<:Calendar}(y::Year{C},m::Month{C}) = DAYSINMONTH[int(m)] + (m == 2 && _isleap(y))
+_lastday(y::Year,m::Month) = DAYSINMONTH[int(m)] + (m == 2 && _isleap(y))
 function Date{C<:ISOCalendar}(y::Year{C},m::Month{C},d::Day{C},::Type{C})
-	-1 < d < _lastday(y,m) + 1 || error("Invalid date")
-	0 < m < 13 || error("Invalid date")
-	y == 0 && d == 0 && error("Only yyyy-mm and mm-dd partial dates allowed")
+	-1 < d < _lastday(y,m) + 1 || error("Invalid day")
+	0 < m < 13 || error("Invalid month")
 	return Date{C}(y,m,d)
 end
 #Default constructors; should we keep both? they both seem natural; what about ymd() family?
@@ -135,27 +134,20 @@ Date(y::DateMath,m::DateMath,d::DateMath) = Date(year(y),month(m),day(d),CALENDA
 date(y::DateMath=1,m::DateMath=1,d::DateMath=1) = Date(year(y),month(m),day(d),CALENDAR)
 #parsedate(); @datef, @sdatef macros?
 ##Print/show/traits; add + for years > 4 digits = ISO standard
-function print{C<:Calendar}(dt::Date{C})
-	y = dt.year == 0 ? "" : @sprintf("%04d",int(dt.year))
-	m = dt.year == 0 ? @sprintf("%02d",int(dt.month)) : "-" * @sprintf("%02d",int(dt.month))
-	dd = dt.day == 0 ? "" : "-" * @sprintf("%02d",int(dt.day))
-	print(y,m,dd)
-end
-show{C<:Calendar}(io::IO,dt::Date{C}) = print(dt)
-#Array{Date} prints dates twice; how to fix?
 function string{C<:Calendar}(dt::Date{C})
 	y = dt.year == 0 ? "" : @sprintf("%04d",int(dt.year))
 	m = dt.year == 0 ? @sprintf("%02d",int(dt.month)) : "-" * @sprintf("%02d",int(dt.month))
 	dd = dt.day == 0 ? "" : "-" * @sprintf("%02d",int(dt.day))
 	return string(y,m,dd)
 end
+print(dt::Date) = print(string(dt))
+show(io::IO,dt::Date) = print(io,string(dt))
 #format()
 typemax{C<:Calendar}(::Type{Date{C}}) = date(typemax(Year),12,31)
 typemin{C<:Calendar}(::Type{Date{C}}) = date(typemin(Year),1,1)
 isequal{C<:Calendar}(x::Date{C},y::Date{C}) = isequal(x.year,y.year) && isequal(x.month,y.month) && isequal(x.day,y.day)
 isless{C<:Calendar}(x::Date{C},y::Date{C}) = isless(_daynumbers(x),_daynumbers(y))
 hash{C<:Calendar}(dt::Date{C}) = bitmix(bitmix(hash(dt.year),hash(dt.month)),hash(dt.day))
-# needed by DataFrames
 length(::Date) = 1
 isdate(n) = typeof(n) <: Date
 calendar{C<:Calendar}(dt::Date{C}) = C
@@ -184,7 +176,6 @@ _yeardays(y::DateMath) = _yeardays(year(y))
 _monthdays(m::DateMath) = (m = m < 3 ? m+12 : m; _monthdays(month(m)))
 _daynumbers(y::DateMath,m::DateMath,d::DateMath) = _daynumbers(year(y),month(m),day(d))
 dayofweek(y::DateMath,m::DateMath,d::DateMath) = dayofweek(year(y),month(m),day(d))
-_day2date(x::DateMath) = _day2date(day(x),CALENDAR)
 dayofyear(y::DateMath,m::DateMath,d::DateMath) = dayofyear(year(y),month(m),day(d))
 week(y::DateMath,m::DateMath,d::DateMath) = week(year(y),month(m),day(d))
 
@@ -192,18 +183,18 @@ week(y::DateMath,m::DateMath,d::DateMath) = week(year(y),month(m),day(d))
 #Most are generic, but the _day2date algorithm comes from Peter Baum
 #http://mysite.verizon.net/aesir_research/date/date0.htm
 #Based on the ISO standard, which uses the proleptic Gregorian calendar
-#which is the normal one everyone thinks of applied continously retroactively
+#which is the normal one everyone thinks of applied retroactively
 #(though it was officially accepted in 1582 when they had to fast-forward 11 days)
-isleap{C<:Calendar}(y::Year{C}) = _isleap(y)
-isleapday{C<:Calendar}(m::Month{C},d::Day{C}) = m == 2 && d == 29
-lastday{C<:Calendar}(y::Year{C},m::Month{C}) = _lastday(y,m)
-_yeardays{C<:Calendar}(y::Year{C}) = 365*y + fld(y,4) - fld(y,100) + fld(y,400)
+isleap(y::Year) = _isleap(y)
+isleapday(m::Month,d::Day) = m == 2 && d == 29
+lastday(y::Year,m::Month) = _lastday(y,m)
+_yeardays(y::Year) = 365*y + fld(y,4) - fld(y,100) + fld(y,400)
 const MONTHDAYS = [0, 31, 61, 92, 122, 153, 184, 214, 245, 275, 306, 337]
-_monthdays{C<:Calendar}(m::Month{C}) = (ind = m-2; return MONTHDAYS[ind])
-_daynumbers{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C}) = (m<3 && ((y,m) = (y-1,m+12)); return days(d + _monthdays(m) + _yeardays(y) - 307))
-dayofweek{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C}) = _daynumbers(y,m,d) % 7 + 1
-dayofyear{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C}) = _daynumbers(y,m,d) - _daynumbers(y,month(1),day(1)) + 1
-function _day2date{C<:Calendar}(x::Day{C},::Type{C})
+_monthdays(m::Month) = (ind = m-2; return MONTHDAYS[ind])
+_daynumbers(y::Year,m::Month,d::Day) = d + _monthdays(m<3 ? m+12 : m) + _yeardays(m<3 ? y-1 : y) - 307
+dayofweek(y::Year,m::Month,d::Day) = _daynumbers(y,m,d) % 7 + 1
+dayofyear(y::Year,m::Month,d::Day) = _daynumbers(y,m,d) - _daynumbers(y,month(1),day(1)) + 1
+function _day2date(x::DateMath)
 	z = x + 307
 	h = z - .25	
 	centdays = fld(h,36524.25)	
@@ -214,7 +205,7 @@ function _day2date{C<:Calendar}(x::Day{C},::Type{C})
 	dd = c - _monthdays(mm)
 	return mm > 12 ? date(yy+1,mm-12,dd) : date(yy,mm,dd)
 end
-function week{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C})
+function week(y::Year,m::Month,d::Day)
 	rdn = _daynumbers(y,m,d)
 	w = fld(rdn,7) % 20871 #20871 = # of weeks in 400 years
 	c = fld((w + (w >= 10435)),5218) #need # of centuries to choose right intercept below
@@ -224,19 +215,19 @@ function week{C<:Calendar}(y::Year{C},m::Month{C},d::Day{C})
 end
 
 #Date arithmetic
-(-){C<:Calendar}(dt::Date{C}) = date(-dt.year,dt.month,dt.day)
-(+){C<:Calendar}(dt::Date{C}) = dt
+(-)(dt::Date) = date(-dt.year,dt.month,dt.day)
+(+)(dt::Date) = dt
 #Date-Date operations: +, *, and / are meaningless; (-) return duration in days
 #no_op_err(name, T) = error(name," not defined for ",T)
-(+){C<:Calendar}(x::Date{C},y::Date{C}) = Base.no_op_err("+","Date")
-(*){C<:Calendar}(x::Date{C},y::Date{C}) = Base.no_op_err("*","Date")
-(/){C<:Calendar}(x::Date{C},y::Date{C}) = Base.no_op_err("/","Date")
+(+)(x::Date,y::Date) = Base.no_op_err("+","Date")
+(*)(x::Date,y::Date) = Base.no_op_err("*","Date")
+(/)(x::Date,y::Date) = Base.no_op_err("/","Date")
 #Date difference is half-open, includes earliest date, excludes latter; should these return abs()?
-(-){C<:Calendar}(x::Date{C},y::Date{C}) = _daynumbers(x) - _daynumbers(y)
+(-)(x::Date,y::Date) = _daynumbers(x) - _daynumbers(y)
 
 #Date-Period operations: Date-Hour/Min/Sec, *, /, <, and > are meaningless; Date-Year/Month/Week/Day -, + return dates
 for op in (:*,:/,:<,:>), period in (Hour,Minute,Second)
-	@eval ($op){C<:Calendar}(x::Date{C},y::$period) = Base.no_op_err($op,"Date-$period")
+	@eval ($op)(x::Date,y::$period) = Base.no_op_err($op,"Date-$period")
 end
 (+){C<:Calendar}(x::Date{C},y::Year{C}) = (ny = x.year+y; return date(ny,x.month,x.day <= lastday(ny,x.month) ? x.day : lastday(ny,x.month)))
 (+){C<:Calendar}(y::Year{C},x::Date{C}) = +(x,y)
@@ -256,13 +247,13 @@ function (-){C<:Calendar}(x::Date{C},y::Month{C})
 	return date(ny,mm,dd)
 end
 (-){C<:Calendar}(y::Month{C},x::Date{C}) = x - y
-(+){C<:Calendar}(x::Date{C},y::Week{C}) = _day2date(_daynumbers(x) + days(y))
+(+){C<:Calendar}(x::Date{C},y::Week{C}) = _day2date(_daynumbers(x) + 7y)
 (+){C<:Calendar}(y::Week{C},x::Date{C}) = x + y
-(-){C<:Calendar}(x::Date{C},y::Week{C}) = _day2date(_daynumbers(x) - days(y))
+(-){C<:Calendar}(x::Date{C},y::Week{C}) = _day2date(_daynumbers(x) - 7y)
 (-){C<:Calendar}(y::Week{C},x::Date{C}) = x - y
-(+){C<:Calendar}(x::Date{C},y::Day{C})  = _day2date(_daynumbers(x) + y) #it'd be great if this could be faster
+(+){C<:Calendar}(x::Date{C},y::Day{C})  = _day2date(_daynumbers(x) + y)
 (+){C<:Calendar}(y::Day{C},x::Date{C})  = x + y
-(-){C<:Calendar}(x::Date{C},y::Day{C})  = _day2date(_daynumbers(x) - y) #it'd be great if this could be faster
+(-){C<:Calendar}(x::Date{C},y::Day{C})  = _day2date(_daynumbers(x) - y)
 (-){C<:Calendar}(y::Day{C},x::Date{C})  = x - y
 
 typealias DatePeriodDate Union(DatePeriod,Date)
@@ -270,32 +261,29 @@ typealias DatePeriodDate Union(DatePeriod,Date)
 @vectorize_2arg DatePeriodDate (+)
 
 #Date ranges: start date, end date, period as step; for creating frequencies
-# immutable DateRange1{C<:Calendar} <: Ranges{Date{C}}
-# 	start::Date{C}
-# 	step::DatePeriod
-# 	len::Int
-# end
-
-# size{C<:Calendar}(r::DateRange1{C}) = (r.len,)
-# length{C<:Calendar}(r::DateRange1{C}) = r.len
-# step{C<:Calendar}(r::DateRange1{C})  = r.step
-# start{C<:Calendar}(r::DateRange1{C}) = 0
-# first{C<:Calendar}(r::DateRange1{C}) = r.start
-# last{C<:Calendar}(r::DateRange1{C}) = r.start + (r.len-1)*r.step
-# next{C<:Calendar}(r::DateRange1{C}, i) = (r.start + i*r.step, i+1)
-# done{C<:Calendar}(r::DateRange1{C}, i) = length(r) <= i
-
-# _units(x::Period) = lowercase(string(typeof(x).name)) * "s($(string(x)))"
-# function show{C<:Calendar}(io::IO,r::DateRange1{C})
-# 	print(io, r.start, ':', _units(r.step), ':', last(r))
-# end
-
-# colon{C<:Calendar}(t1::Date{C}, y::Year{C}, t2::Date{C}) = DateRange1{C}(t1, y, int(fld((t2.year - t1.year),y) + 1) )
-# colon{C<:Calendar}(t1::Date{C}, m::Month{C}, t2::Date{C}) = DateRange1{C}(t1, m, int(fld(int(t2.year-t1.year)*12+int(t2.month-t1.month),m) + 1) )
-# colon{C<:Calendar}(t1::Date{C}, w::Week{C}, t2::Date{C}) = DateRange1{C}(t1, w, int(fld(_daynumbers(t2)-_daynumbers(t1),days(w)) + 1) )
-# colon{C<:Calendar}(t1::Date{C}, d::Day{C}, t2::Date{C}) = DateRange1{C}(t1, d, int(fld(_daynumbers(t2)-_daynumbers(t1),d) + 1) )
-# (+){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start+p,r.step,r.len)
-# (-){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start-p,r.step,r.len)
+immutable DateRange1{C<:Calendar} <: Ranges{Date{C}}
+	start::Date{C}
+	step::DatePeriod
+	len::Int
+end
+size(r::DateRange1) = (r.len,)
+length(r::DateRange1) = r.len
+step(r::DateRange1)  = r.step
+start(r::DateRange1) = 0
+first(r::DateRange1) = r.start
+last(r::DateRange1) = r.start + convert(typeof(r.step),(r.len-1)*r.step)
+next(r::DateRange1, i) = (r.start + convert(typeof(r.step),i*r.step), i+1)
+done(r::DateRange1, i) = length(r) <= i
+_units(x::Period) = lowercase(string(typeof(x).name)) * "s($(string(x)))"
+function show{C<:Calendar}(io::IO,r::DateRange1{C})
+	print(io, r.start, ':', _units(r.step), ':', last(r))
+end
+colon{C<:Calendar}(t1::Date{C}, y::Year{C}, t2::Date{C}) = DateRange1{C}(t1, y, int(fld((t2.year - t1.year),y) + 1) )
+colon{C<:Calendar}(t1::Date{C}, m::Month{C}, t2::Date{C}) = DateRange1{C}(t1, m, int(fld(int(t2.year-t1.year)*12+int(t2.month-t1.month),m) + 1) )
+colon{C<:Calendar}(t1::Date{C}, w::Week{C}, t2::Date{C}) = DateRange1{C}(t1, w, int(fld(_daynumbers(t2)-_daynumbers(t1),days(w)) + 1) )
+colon{C<:Calendar}(t1::Date{C}, d::Day{C}, t2::Date{C}) = DateRange1{C}(t1, d, int(fld(_daynumbers(t2)-_daynumbers(t1),d) + 1) )
+(+){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start+p,r.step,r.len)
+(-){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start-p,r.step,r.len)
 
 #DateTime type
 bitstype 64 DateTime{C <: Calendar,T <: TimeZone} <: TimeType
@@ -394,7 +382,7 @@ function _day2day(x::Int64)
     mm = div(5*c+456,153)
     return c - _monthdays(mm)
 end
-year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _day2year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
+year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _day2year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400)) #fld(t,31536000)
 month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = _day2month(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
 day{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})      = _day2day(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
 hour{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = fld((int64(dt) - leaps(dt)+getoffset(T,dt)),3600) % 24
@@ -416,9 +404,16 @@ week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})       = week(year(dt),month(dt)
 @vectorize_1arg DateTime dayofyear
 @vectorize_1arg DateTime week
 
+_yearsecs(y) = 86400*((y-1)*365 + fld(y,4) - fld(y,100) + fld(y,400))
 #DateTime-Period arithmetic: <<, >>
-# (>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = (ny = year(x)+y; return date(ny,x.month,x.day <= lastday(ny,x.month) ? x.day : lastday(ny,x.month)))
-# (>>){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = +(x,y)
+function (>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C})
+	#need to correct leap seconds
+	oy = year(x)
+	ny = oy + y
+	oy,ny = _yearsecs(oy),_yearsecs(ny)
+	return _datetime(int64(x)-oy+ny,C,T)
+end
+(>>){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = >>(x,y)
 # (<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = (ny = x.year-y; return date(ny,x.month,x.day <= lastday(ny,x.month) ? x.day : lastday(ny,x.month)))
 # (<<){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = -(x,y)
 # function (>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Month{C}) 

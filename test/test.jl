@@ -63,7 +63,7 @@ dt = date(2013,7,1)
 @assert typeof(lastday(dt)) == Int64
 @assert typeof(Datetime._yeardays(dt)) == Int64
 @assert typeof(Datetime._monthdays(dt)) == Int64
-@assert typeof(Datetime._daynumbers(dt)) == Day{ISOCalendar}
+@assert typeof(Datetime._daynumbers(dt)) == Int64
 dt = date(2012,2,29)
 dt2 = date(2000,2,1)
 @assert dt > dt2
