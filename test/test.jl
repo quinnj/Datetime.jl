@@ -6,14 +6,29 @@ h = hour(1)
 mi = minute(1)
 s = second(1)
 
+#Period arithmetic
 @assert typeof(y+m) == Month{ISOCalendar}
 @assert typeof(m+y) == Month{ISOCalendar}
 @assert typeof(y+w) == Week{ISOCalendar}
-@assert typeof(w+y) == Week{ISOCalendar}
 @assert typeof(y+d) == Day{ISOCalendar}
-@assert typeof(d+y) == Day{ISOCalendar}
-
-#Period arithmetic
+@assert typeof(y+h) == Hour{ISOCalendar}
+@assert typeof(y+mi) == Minute{ISOCalendar}
+@assert typeof(y+s) == Second{ISOCalendar}
+Base.Test.@test_throws m+w
+Base.Test.@test_throws m+d
+Base.Test.@test_throws m+h
+Base.Test.@test_throws m+mi
+Base.Test.@test_throws m+s
+@assert typeof(w+d) == Day{ISOCalendar}
+@assert typeof(w+h) == Hour{ISOCalendar}
+@assert typeof(w+mi) == Minute{ISOCalendar}
+@assert typeof(w+s) == Second{ISOCalendar}
+@assert typeof(d+h) == Hour{ISOCalendar}
+@assert typeof(d+mi) == Minute{ISOCalendar}
+@assert typeof(d+s) == Second{ISOCalendar}
+@assert typeof(h+mi) == Minute{ISOCalendar}
+@assert typeof(h+s) == Second{ISOCalendar}
+@assert typeof(mi+s) == Second{ISOCalendar}
 @assert y + m == months(13)
 @assert y + w == weeks(53)
 @assert y + d == days(366)
@@ -25,25 +40,37 @@ s = second(1)
 @assert y * d*2 == days(730)
 @assert y > m
 @assert d < w
+@assert typemax(Year) == 2147483647
+@assert typemax(Year) + y == -2147483648
+@assert typemin(Year) == -2147483648
 #Period-Real arithmetic
 @assert y + 1 == 2
 @assert 1 + y == 2
+@assert y + 1.0 == 2.0
 @assert y * 4 == 4
-@assert 4 * y == 4
+@assert y * 4f0 == 4.0f0
+@assert y * 3//4 == 3//4
 @assert y / 2 == 0.5
 @assert 2 / y == 2
 @assert y*10 % 5 == 0
 @assert 5 % y*10 == 0
 @assert !(y > 3)
 @assert 4 > y
+t = [y,y,y,y,y]
+t .+ year(2)
 
 #traits
 @assert zero(typeof(y)) == year(0)
 @assert one(typeof(y)) == y
-
 @assert months(y) == months(12)
 @assert weeks(y) == weeks(52)
 @assert days(y) == days(365)
+#wrapping
+@assert addwrap(m,months(11)) == months(12) #month 1 plus 11 months == month 12
+@assert addwrap(m,months(12)) == months(1)  #month 1 plus 12 months == month 1
+@assert addwrap(m,months(24)) == months(1)  #month 1 plus 24 months == month 1
+@assert subwrap(months(12),m) == months(11) #month 12 minus 1 month == month 11
+@assert addwrap(year(2000),months(12),months(1)) = year(2001) #year 2000 month 12 plus 1 month == year 2001
 
 #Date tests
 dt = date(2013,7,1)
