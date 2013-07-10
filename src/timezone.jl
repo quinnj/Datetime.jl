@@ -60,8 +60,8 @@ const UNIXEPOCH = 62135596800 #Rata Die seconds since 1970-01-01T00:00:00 UTC
 
 const FILEPATH = Base.dirname(Base.source_path())
 #These functions retrieves the correct offset/abbreviation for a given time/timezone
-getoffset(tz::Type{Zone0},secs) = 0
-function getoffset{T<:TimeZone}(tz::Type{T},secs)
+setoffset(tz::Type{Zone0},secs) = 0
+function setoffset{T<:TimeZone}(tz::Type{T},secs)
 	sym = get(DATAFILES,tz,:Zone382DATA)
 	if !isdefined(Datetime,sym)
 		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
@@ -71,20 +71,46 @@ function getoffset{T<:TimeZone}(tz::Type{T},secs)
 	else
 		tzdata = eval(sym)
 	end
-	return int64(_findfirst(tzdata,int64(secs),3))
+	return int64(_findfirst(tzdata,int64(secs)))
+end
+function _findfirst(tzdata,secs)
+	i = 1
+	row = 1
+	@inbounds begin
+	while true
+		if tzdata[i,2] > secs 
+			if tzdata[i,2]+tzdata[i,3] <= secs
+				row = i
+				break
+			else
+				row = i-1
+				break
+			end
+		end
+		i += 1
+	end 
+	return tzdata[row,3]
+	end
+end
+getoffset(tz::Type{Zone0},secs) = 0
+function getoffset{T<:TimeZone}(tz::Type{T},secs)
+	tzdata = eval(get(DATAFILES,tz,:Zone382DATA))
+	return _findfirst1(tzdata,int64(secs),3)
+end
+function _findfirst1(tzdata,secs,col)
+	i = 1
+	@inbounds begin
+	while true
+		tzdata[i,2] > secs && break
+		i += 1
+	end 
+	return tzdata[i-1,col]
+	end
 end
 getabr(tz::Type{Zone0},secs) = "UTC"
 function getabr{T<:TimeZone}(tz::Type{T},secs)
 	tzdata = eval(get(DATAFILES,tz,:Zone382DATA))
-	return _findfirst(tzdata,int64(secs),1)
-end
-function _findfirst(tzdata,secs,col)
-	i = 1
-	while true
-		@inbounds (tzdata[i,2] > secs && break)
-		i += 1
-	end 
-	return tzdata[i+1,col]
+	return _findfirst1(tzdata,int64(secs),1)
 end
 #function _findbinary(tzdata,secs,col) #binary search for larger datasets
 

@@ -336,7 +336,7 @@ leaps(secs::DateTimeMath)  = (i = 1; while true; @inbounds (_leaps[i]  >= secs &
 leaps1(secs::DateTimeMath) = (i = 1; while true; @inbounds (_leaps1[i] >= secs && break); i+=1 end; return i-1)
 function datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::Type{T}=TIMEZONE)
     secs = int(s) + 60mi + 3600h + 86400*_daynumbers(y,m,d)
-    secs -= 1902 < y < 2038 ? getoffset(T,secs) : get(OFFSETS,T,0)
+    secs -= 1902 < y < 2038 ? setoffset(T,secs) : get(OFFSETS,T,0)
     secs += y < 1972 ? 0 : s == 60 ? leaps1(secs) : leaps(secs)
     return _datetime(secs,CALENDAR,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end

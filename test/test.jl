@@ -70,7 +70,7 @@ t .+ year(2)
 @assert addwrap(m,months(12)) == months(1)  #month 1 plus 12 months == month 1
 @assert addwrap(m,months(24)) == months(1)  #month 1 plus 24 months == month 1
 @assert subwrap(months(12),m) == months(11) #month 12 minus 1 month == month 11
-@assert addwrap(year(2000),months(12),months(1)) = year(2001) #year 2000 month 12 plus 1 month == year 2001
+@assert addwrap(year(2000),months(12),months(1)) == year(2001) #year 2000 month 12 plus 1 month == year 2001
 
 #Date tests
 dt = date(2013,7,1)
@@ -86,7 +86,7 @@ dt = date(2013,7,1)
 @assert lastday(dt) == 31
 @assert Datetime._yeardays(dt) == 735233
 @assert Datetime._monthdays(dt) == 122
-@assert Datetime._daynumbers(dt) == 735049
+@assert Datetime._daynumbers(dt) == 735049 #Rata Die day numbers
 @assert typeof(lastday(dt)) == Int64
 @assert typeof(Datetime._yeardays(dt)) == Int64
 @assert typeof(Datetime._monthdays(dt)) == Int64
@@ -139,6 +139,7 @@ for i = 1:21
 	@assert week(dt) == check[i]
 	dt = dt + day(1)
 end
+#TODO: fix BCE dates/arithmetic; i.e. can't show 31st of month
 dt1 = date(2000,1,1)
 dt2 = date(2010,1,1)
 y = year(1)
@@ -205,7 +206,6 @@ for i = 1:21
 	@assert week(dt) == check[i]
 	dt = dt >> day(1)
 end
-
 #Timezone
 TZ = CST
 q = datetime(1972,6,30,18,59,58,TZ)
@@ -217,6 +217,17 @@ r = datetime(1972,6,30,19,0,0,TZ)
 @assert r - t == 2 #Includes leap second
 @assert n - t == 1
 @assert r - n == 1
+#Daylight savings time
+t1 = datetime(1920,6,13,1,59,59,CST)
+t2 = datetime(1920,6,13,2,0,0,CST)
+t3 = datetime(1920,6,13,3,0,0,CST)
+@assert t2 - t1 == 1
+@assert t3 - t1 == 1
+@assert t3 == t2
+@assert t1 >> second(1) == t2
+@assert t1 >> second(1) == t3
+t4 = datetime(1920,6,13,4,0,0,CST)
+@assert t4 << hour(1) == t3
 
 #Conversion from Unix time
 _ = time()
