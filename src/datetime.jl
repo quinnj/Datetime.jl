@@ -49,6 +49,9 @@ convert{P<:Period}(::Type{P},x::Int32) = Base.box(P,Base.unbox(Int32,x))
 convert{P<:Period}(::Type{Int32},x::P) = Base.box(Int32,Base.unbox(P,x))
 convert{P<:Period}(::Type{P},x::Real) = convert(P,int32(x))
 convert{R<:Real}(::Type{R},x::Period) = convert(R,int32(x))
+for period in (Year,Month,Week,Day,Hour,Minute,Second)
+	@eval convert(::Type{$period},x::Int32) = convert($period{CALENDAR},int32(x))
+end
 convert{P<:Period}(::Type{P},x::P) = x
 promote_rule{P<:Period,R<:Real}(::Type{P},::Type{R}) = R
 promote_rule{A<:Period,B<:Period}(::Type{A},::Type{B}) =
@@ -387,9 +390,9 @@ function _day2day(x::Int64)
     mm = div(5*c+456,153)
     return c - _monthdays(mm)
 end
-year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _day2year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400)) #fld(t,31536000)
-month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = _day2month(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
-day{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})      = _day2day(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
+year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = int(_day2year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400)))
+month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = int(_day2month(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400)))
+day{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})      = int(_day2day(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400)))
 hour{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = fld((int64(dt) - leaps(dt)+getoffset(T,dt)),3600) % 24
 minute{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = fld((int64(dt) - leaps(dt)+getoffset(T,dt)) % 3600, 60)
 second{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = (s = ((int64(dt) - leaps1(dt)+getoffset(T,dt)) % 60); return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
