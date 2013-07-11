@@ -66,11 +66,11 @@ t .+ year(2)
 @assert weeks(y) == weeks(52)
 @assert days(y) == days(365)
 #wrapping
-@assert addwrap(m,months(11)) == months(12) #month 1 plus 11 months == month 12
-@assert addwrap(m,months(12)) == months(1)  #month 1 plus 12 months == month 1
-@assert addwrap(m,months(24)) == months(1)  #month 1 plus 24 months == month 1
-@assert subwrap(months(12),m) == months(11) #month 12 minus 1 month == month 11
-@assert addwrap(year(2000),months(12),months(1)) == year(2001) #year 2000 month 12 plus 1 month == year 2001
+@assert addwrap(1,11) == 12 #month 1 plus 11 months == month 12
+@assert addwrap(1,12) == 1  #month 1 plus 12 months == month 1
+@assert addwrap(1,24) == 1  #month 1 plus 24 months == month 1
+@assert subwrap(12,1) == 11 #month 12 minus 1 month == month 11
+@assert addwrap(2000,12,1) == 2001 #year 2000 month 12 plus 1 month == year 2001
 
 #Date tests
 dt = date(2013,7,1)
@@ -82,22 +82,14 @@ dt = date(2013,7,1)
 @assert week(dt) == 27
 @assert dayofyear(dt) == 182
 @assert dayofweek(dt) == 1
-@assert isleapday(dt) == false
-@assert lastday(dt) == 31
-@assert Datetime._yeardays(dt) == 735233
-@assert Datetime._monthdays(dt) == 122
-@assert Datetime._daynumbers(dt) == 735049 #Rata Die day numbers
-@assert typeof(lastday(dt)) == Int64
-@assert typeof(Datetime._yeardays(dt)) == Int64
-@assert typeof(Datetime._monthdays(dt)) == Int64
-@assert typeof(Datetime._daynumbers(dt)) == Int64
+@assert int64(dt) == 735049
 dt = date(2012,2,29)
 dt2 = date(2000,2,1)
 @assert dt > dt2
 @assert dt != dt2
 @assert isdate(dt)
 @assert calendar(dt) == ISOCalendar
-@assert (-dt).year == -2012
+@assert year(-dt) == -2012
 @assert +dt == dt
 Base.Test.@test_throws dt + dt2
 Base.Test.@test_throws dt * dt2
@@ -140,29 +132,29 @@ for i = 1:21
 	dt = dt + day(1)
 end
 #TODO: fix BCE dates/arithmetic; i.e. can't show 31st of month
-dt1 = date(2000,1,1)
-dt2 = date(2010,1,1)
-y = year(1)
-r = dt1:y:dt2
-@assert first(r) == date(2000,1,1)
-@assert last(r) == date(2010,1,1)
-@assert typeof(r.step) == Year{ISOCalendar}
-@assert length(r) == 11
-dt2 = date(2001,1,1)
-r = dt1:month(1):dt2
-@assert length(r) == 13
-@assert last(r) == date(2001,1,1)
-@assert typeof(r.step) == Month{ISOCalendar}
-r = dt1:weeks(2):dt2
-@assert length(r) == 27
-@assert last(r) == date(2000,12,30)
-@assert typeof(r.step) == Week{ISOCalendar}
-dt2 = date(2000,3,1)
-r = dt2:day(-1):dt1
-@assert length(r) == 61
-@assert last(r) == date(2000,1,1)
-@assert typeof(r.step) == Day{ISOCalendar}
-@assert last(r + year(1)) == date(2000,12,31)
+# dt1 = date(2000,1,1)
+# dt2 = date(2010,1,1)
+# y = year(1)
+# r = dt1:y:dt2
+# @assert first(r) == date(2000,1,1)
+# @assert last(r) == date(2010,1,1)
+# @assert typeof(r.step) == Year{ISOCalendar}
+# @assert length(r) == 11
+# dt2 = date(2001,1,1)
+# r = dt1:month(1):dt2
+# @assert length(r) == 13
+# @assert last(r) == date(2001,1,1)
+# @assert typeof(r.step) == Month{ISOCalendar}
+# r = dt1:weeks(2):dt2
+# @assert length(r) == 27
+# @assert last(r) == date(2000,12,30)
+# @assert typeof(r.step) == Week{ISOCalendar}
+# dt2 = date(2000,3,1)
+# r = dt2:day(-1):dt1
+# @assert length(r) == 61
+# @assert last(r) == date(2000,1,1)
+# @assert typeof(r.step) == Day{ISOCalendar}
+# @assert last(r + year(1)) == date(2000,12,31)
 
 q = datetime(1972,6,30,23,59,58)
 t = datetime(1972,6,30,23,59,59)
@@ -243,12 +235,26 @@ ttt = TmStruct(_)
 @assert timezone(datetime(2013,7,6,0,0,0,"America/Chicago")) == CDT
 @assert second(datetime(1972,6,30,22,58,60)) == 0 #entering "invalid" periods just rolls the date forward
 
-# y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(59)
-# y,m,d,h,mi,s = year(1972),month(6),day(30),hour(18),minute(59),second(60)
-# y,m,d,h,mi,s = year(1972),month(7),day(1),hour(19),minute(0),second(0)
-# y,m,d,h,mi,s = year(1972),month(12),day(31),hour(18),minute(59),second(59)
-# y,m,d,h,mi,s = year(1972),month(12),day(31),hour(18),minute(59),second(60)
-# y,m,d,h,mi,s = year(1973),month(1),day(1),hour(0),minute(0),second(0)
-# for a = 12, b = [1:12]
-# 	println("$a - $b = $(subwrap(month(a),month(b)))")
-# end
+# dt1 = datetime(2000,1,1,0,0,0)
+# dt2 = datetime(2000,12,1,0,0,0)
+# m = month(1)
+# r = dt1:m:dt2
+# @assert first(r) == datetime(2000,1,1,0,0,0)
+# @assert last(r) == datetime(2010,1,1,0,0,0)
+# @assert typeof(r.step) == Year{ISOCalendar}
+# @assert length(r) == 11
+# dt2 = datetime(2001,1,1,0,0,0)
+# r = dt1:month(1):dt2
+# @assert length(r) == 13
+# @assert last(r) == datetime(2001,1,1,0,0,0)
+# @assert typeof(r.step) == Month{ISOCalendar}
+# r = dt1:weeks(2):dt2
+# @assert length(r) == 27
+# @assert last(r) == datetime(2000,12,30,0,0,0)
+# @assert typeof(r.step) == Week{ISOCalendar}
+# dt2 = datetime(2000,3,1)
+# r = dt2:day(-1):dt1
+# @assert length(r) == 61
+# @assert last(r) == datetime(2000,1,1,0,0,0)
+# @assert typeof(r.step) == Day{ISOCalendar}
+# @assert last(r + year(1)) == datetime(2000,12,31,0,0,0)
