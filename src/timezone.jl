@@ -95,17 +95,16 @@ end
 getoffset(tz::Type{Zone0},secs) = 0
 function getoffset{T<:TimeZone}(tz::Type{T},secs)
 	tzdata = eval(get(DATAFILES,tz,:Zone382DATA))
+	(secs < tzdata[1,2] || secs > tzdata[end,2]) && return get(OFFSETS,tz,0)
 	return _findfirst1(tzdata,int64(secs),3)
 end
 function _findfirst1(tzdata,secs,col)
 	i = 1
-	@inbounds begin
 	while true
-		tzdata[i,2] > secs && break
+		@inbounds (tzdata[i,2] > secs && break)
 		i += 1
 	end 
 	return tzdata[i-1,col]
-	end
 end
 getabr(tz::Type{Zone0},secs) = "UTC"
 function getabr{T<:TimeZone}(tz::Type{T},secs)
