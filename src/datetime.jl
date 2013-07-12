@@ -6,9 +6,9 @@ export Calendar, ISOCalendar, TimeZone, Date, DateTime, DateRange1,
     Year, Month, Week, Day, Hour, Minute, Second,
     year, month, week, day, hour, minute, second,
     years,months,weeks,days,hours,minutes,seconds,
-    addwrap, subwrap, Date, date, unix2datetime, datetime,
-    isleap, isleapday, lastday, dayofweek, dayofyear, week, isdate,
-    now, calendar, timezone, setcalendar, settimezone, timezone
+    addwrap, subwrap, date, unix2datetime, datetime,
+    isleap, isleapday, lastday, dayofweek, dayofyear, isdate,
+    now, calendar, timezone, setcalendar, settimezone
 
 abstract AbstractTime
 abstract Calendar <: AbstractTime
@@ -128,7 +128,6 @@ isless{C<:Calendar}(x::Date{C},y::Date{C}) = isless(int64(x),int64(y))
 isequal{C<:Calendar}(x::Date{C},y::Date{C}) = isequal(int64(x),int64(y))
 #Internal constructor
 _date{C<:Calendar}(x::Int64,::Type{C}=CALENDAR) = convert(Date{C},x)
-
 #ISO-compliant constructor
 const DAYSINMONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
 lastday(y::Int64,m::Int64) = DAYSINMONTH[m] + (m == 2 && (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)))
@@ -356,6 +355,11 @@ print{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = print(string(dt))
 show{C<:Calendar,T<:TimeZone}(io::IO,dt::DateTime{C,T}) = print(io,string(dt))
 typemin(::Type{DateTime}) = datetime(-100000000000,1,1,0,0,0)
 typemax(::Type{DateTime}) = datetime(100000000000,12,31,23,59,59)
+hash(dt::DateTime) = hash(int64(dt))
+length(::DateTime) = 1
+isdatetime(n) = typeof(n) <: DateTime
+calendar{C<:Calendar}(dt::DateTime{C}) = C
+timezone{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = (y = year(dt); 1902 < y < 2038 ? getabr(T,dt) : get(ABBREVIATIONS,T,"UTC"))
 
 #Accessor/generics
 year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
@@ -380,11 +384,10 @@ week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = _week(fld(int64(dt)-leaps(dt)
 _yearsecs(y) = 86400*((y-1)*365 + fld(y,4) - fld(y,100) + fld(y,400))
 #DateTime-Period arithmetic: <<, >>
 function (>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C})
-	#need to correct leap seconds
 	oy = year(x)
-	ny = oy + y
-	oy,ny = _yearsecs(oy),_yearsecs(ny)
-	return _datetime(int64(x)-oy+ny,C,T)
+	dt = int64(x) - _yearsecs(oy) + _yearsecs(oy + y)
+	dt += oy < 1972 ? 0 : second(x) == 60 ? leaps1(dt) : leaps(dt)
+	return _datetime(dt,C,T)
 end
 (>>){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = >>(x,y)
 # (<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = (ny = x.year-y; return date(ny,x.month,x.day <= lastday(ny,x.month) ? x.day : lastday(ny,x.month)))
