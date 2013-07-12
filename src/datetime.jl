@@ -196,7 +196,9 @@ calendar{C<:Calendar}(dt::Date{C}) = C
 isleap(dt::Date) = (y = year(dt); (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)))
 lastday(dt::Date) = lastday(year(dt),month(dt))
 dayofweek(dt::Date) = int64(dt) % 7 + 1
-#dayofweekofmonth(dt::Date) = 
+#dayofweekinmonth(dt::Date) = 
+#firstdayofweek
+#lastdayofweek
 dayofyear(dt::Date) = int64(dt) - _daynumbers(year(dt),1,1) + 1
 week(dt::Date) = _week(int64(dt))
 @vectorize_1arg Date isleap
@@ -381,34 +383,14 @@ week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = _week(fld(int64(dt)-leaps(dt)
 @vectorize_1arg DateTime dayofyear
 @vectorize_1arg DateTime week
 
-_yearsecs(y) = 86400*((y-1)*365 + fld(y,4) - fld(y,100) + fld(y,400))
 #DateTime-Period arithmetic: <<, >>
-function (>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C})
-	oy = year(x)
-	dt = int64(x) - _yearsecs(oy) + _yearsecs(oy + y)
-	dt += oy < 1972 ? 0 : second(x) == 60 ? leaps1(dt) : leaps(dt)
-	return _datetime(dt,C,T)
-end
-(>>){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = >>(x,y)
-# (<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = (ny = x.year-y; return date(ny,x.month,x.day <= lastday(ny,x.month) ? x.day : lastday(ny,x.month)))
-# (<<){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = -(x,y)
-# function (>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Month{C}) 
-# 	ny = addwrap(x.year,x.month,y)
-# 	mm = addwrap(x.month,y)
-# 	dd = x.day <= lastday(ny,mm) ? x.day : lastday(ny,mm)
-# 	return date(ny,mm,dd)
-# end
-# (>>){C<:Calendar,T<:TimeZone}(y::Month{C},x::DateTime{C,T}) = x + y
-# function (<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Month{C})
-# 	ny = subwrap(x.year,x.month,y)
-# 	mm = subwrap(x.month,y)
-# 	dd = x.day <= lastday(ny,mm) ? x.day : lastday(ny,mm)
-# 	return date(ny,mm,dd)
-# end
-# (<<){C<:Calendar,T<:TimeZone}(y::Month{C},x::DateTime{C,T}) = x - y
-(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)+604800y)
+(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = convert(DateTime{C,T},int64(x)+31536000y)
+(>>){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = x >> y
+(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = convert(DateTime{C,T},int64(x)-31536000y)
+(<<){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = x << y
+(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)+31536000y)
 (>>){C<:Calendar,T<:TimeZone}(y::Week{C},x::DateTime{C,T}) = x >> y
-(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)-604800y)
+(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)-31536000y)
 (<<){C<:Calendar,T<:TimeZone}(y::Week{C},x::DateTime{C,T}) = x << y
 (>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Day{C}) = convert(DateTime{C,T},int64(x)+86400y)
 (>>){C<:Calendar,T<:TimeZone}(y::Day{C},x::DateTime{C,T}) = x >> y
@@ -426,9 +408,9 @@ end
 (>>){C<:Calendar,T<:TimeZone}(y::Second{C},x::DateTime{C,T}) = x >> y
 (<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)-y)
 (<<){C<:Calendar,T<:TimeZone}(y::Second{C},x::DateTime{C,T}) = x << y
-# typealias DatePeriodDate Union(DatePeriod,Date)
-# @vectorize_2arg DatePeriodDate (<<)
-# @vectorize_2arg DatePeriodDate (>>)
+typealias DateTimePeriodDate Union(Period,Date)
+@vectorize_2arg DateTimePeriodDate (<<)
+@vectorize_2arg DateTimePeriodDate (>>)
 
 # #Date ranges: start date, end date, period as step; for creating frequencies
 # immutable DateTimeRange1{C<:Calendar,T<:TimeZone} <: Ranges{DateTime{C,T}}
