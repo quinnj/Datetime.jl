@@ -223,7 +223,7 @@ t4 = datetime(1920,6,13,4,0,0,CST)
 
 #Conversion from Unix time
 _ = time()
-tt = unix2datetime(_,TZ)
+tt = unix2datetime(int64(_),TZ)
 ttt = TmStruct(_)
 @assert year(tt) == int("20"*string(digits(ttt.year)[2])*string(digits(ttt.year)[1]))
 @assert month(tt) == ttt.month+1

@@ -3,7 +3,7 @@ timing = ref(Float64)
 baseline = ref(Float64)
 function test()
 	tic()
-	y,m,d,h,mi,s = year(1982),month(6),day(30),hour(23),minute(59),second(59)
+	y,m,d,h,mi,s = 1982,6,30,23,59,59
 	for i = 1:1000000
 		b = datetime(y,m,d,h,mi,s) #UTC
 	end
@@ -14,7 +14,7 @@ push!(timing,test())
 push!(baseline,0.193)
 function test()
 	tic()
-	y,m,d,h,mi,s = year(1982),month(6),day(30),hour(23),minute(59),second(59)
+	y,m,d,h,mi,s = 1982,6,30,23,59,59
 	for i = 1:1000000
 		b = datetime(y,m,d,h,mi,s,VET)
 	end
@@ -25,7 +25,7 @@ push!(timing,test())
 push!(baseline,1.17)
 function test()
 	tic()
-	y,m,d,h,mi,s = year(1982),month(6),day(30),hour(23),minute(59),second(59)
+	y,m,d,h,mi,s = 1982,6,30,23,59,59
 	for i = 1:1000000
 		b = datetime(y,m,d,h,mi,s,PST)
 	end
