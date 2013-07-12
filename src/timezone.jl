@@ -94,7 +94,15 @@ function _findfirst(tzdata,secs)
 end
 getoffset(tz::Type{Zone0},secs) = 0
 function getoffset{T<:TimeZone}(tz::Type{T},secs)
-	tzdata = eval(get(DATAFILES,tz,:Zone382DATA))
+	sym = get(DATAFILES,tz,:Zone382DATA)
+	if !isdefined(Datetime,sym)
+		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
+			tzdata = deserialize(ff)
+		end
+		@eval global $sym = $tzdata
+	else
+		tzdata = eval(sym)
+	end
 	(secs < tzdata[1,2] || secs > tzdata[end,2]) && return get(OFFSETS,tz,0)
 	return _findfirst1(tzdata,int64(secs),3)
 end
