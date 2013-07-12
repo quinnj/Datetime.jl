@@ -332,8 +332,9 @@ function datetime{T<:TimeZone}(y::Int64,m::Int64,d::Int64,h::Int64,mi::Int64,s::
     secs += y < 1972 ? 0 : s == 60 ? leaps1(secs) : leaps(secs)
     return _datetime(secs,CALENDAR,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
 end
-datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::Type{T}=TIMEZONE) = datetime(y,m,d,h,mi,s,tz)
-datetime(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::String) = datetime(y,m,d,h,mi,s,timezone(tz))
+datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::Type{T}) = datetime(y,m,d,h,mi,s,tz)
+datetime(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath) = datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),TIMEZONE)
+datetime(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::String) = datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),timezone(tz))
 datetime{C<:Calendar}(d::Date{C}) = datetime(year(d),month(d),day(d),0,0,0,TIMEZONE)
 date(x::DateTime) = date(year(x),month(x),day(x))
 unix2datetime{T<:TimeZone}(x::Int64,tz::Type{T}=TIMEZONE) = (s = UNIXEPOCH + x; _datetime(s + leaps(s),CALENDAR,tz))
