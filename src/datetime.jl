@@ -354,6 +354,9 @@ function string{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})
 end
 print{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = print(string(dt))
 show{C<:Calendar,T<:TimeZone}(io::IO,dt::DateTime{C,T}) = print(io,string(dt))
+typemin(::Type{DateTime}) = datetime(-100000000000,1,1,0,0,0)
+typemax(::Type{DateTime}) = datetime(100000000000,12,31,23,59,59)
+
 #Accessor/generics
 year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
 month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = _month(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
@@ -363,7 +366,7 @@ minute{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = fld((int64(dt)-leaps(dt)+
 second{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = (s = ((int64(dt)-leaps1(dt)+getoffset(T,dt)) % 60); return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
 calendar{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = C
 timezone{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = T
-isleap(dt::DateTime)     = isleap(year(dt))
+isleap(dt::DateTime)     = (y = year(dt); (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)))
 lastday(dt::DateTime)    = lastday(year(dt),month(dt))
 dayofweek(dt::DateTime)  = (fld(int64(dt),86400) + 1) % 7
 dayofyear(dt::DateTime)  = fld(int64(dt)-_yearsecs(year(dt)),86400)+1
