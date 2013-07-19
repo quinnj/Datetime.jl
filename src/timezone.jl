@@ -1,3 +1,4 @@
+#TimeZone code
 #Define "ZoneX" for each zone_id in Olson tz database
 for tz in (:Zone0  ,:Zone1  ,:Zone2  ,:Zone3  ,:Zone4  ,:Zone5  ,:Zone6  ,:Zone7  ,:Zone8  ,:Zone9  ,:Zone10 ,:Zone11 ,:Zone12 ,:Zone13 ,:Zone14 ,:Zone15 ,:Zone16 ,:Zone17 ,:Zone18 ,:Zone19 ,:Zone20 ,:Zone21 ,:Zone22 ,:Zone23 ,:Zone24 ,:Zone25 ,:Zone26 ,:Zone27 ,:Zone28 ,:Zone29 ,:Zone30 ,:Zone31 ,:Zone32 ,:Zone33 ,:Zone34 ,:Zone35 ,:Zone36 ,:Zone37 ,:Zone38 ,:Zone39 ,:Zone40 ,:Zone41 ,:Zone42 ,:Zone43 ,:Zone44 ,:Zone45 ,:Zone46 ,:Zone47 ,:Zone48 ,:Zone49 ,
 		   :Zone50 ,:Zone51 ,:Zone52 ,:Zone53 ,:Zone54 ,:Zone55 ,:Zone56 ,:Zone57 ,:Zone58 ,:Zone59 ,:Zone60 ,:Zone61 ,:Zone62 ,:Zone63 ,:Zone64 ,:Zone65 ,:Zone66 ,:Zone67 ,:Zone68 ,:Zone69 ,:Zone70 ,:Zone71 ,:Zone72 ,:Zone73 ,:Zone74 ,:Zone75 ,:Zone76 ,:Zone77 ,:Zone78 ,:Zone79 ,:Zone80 ,:Zone81 ,:Zone82 ,:Zone83 ,:Zone84 ,:Zone85 ,:Zone86 ,:Zone87 ,:Zone88 ,:Zone89 ,:Zone90 ,:Zone91 ,:Zone92 ,:Zone93 ,:Zone94 ,:Zone95 ,:Zone96 ,:Zone97 ,:Zone98 ,:Zone99 ,
@@ -23,7 +24,7 @@ const TIMEZONES = (ASCIIString=>DataType)["Etc/GMT"=>Zone0,"Etc/UTC"=>Zone0,"Etc
 	"Indian/Kerguelen"=>Zone350,"Africa/Lome"=>Zone351,"Asia/Bangkok"=>Zone352,"Asia/Dushanbe"=>Zone353,"Pacific/Fakaofo"=>Zone354,"Asia/Dili"=>Zone355,"Asia/Ashgabat"=>Zone356,"Africa/Tunis"=>Zone357,"Pacific/Tongatapu"=>Zone358,"Europe/Istanbul"=>Zone359,"America/Port_of_Spain"=>Zone360,"Pacific/Funafuti"=>Zone361,"Asia/Taipei"=>Zone362,"Africa/Dar_es_Salaam"=>Zone363,"Europe/Kiev"=>Zone364,"Europe/Uzhgorod"=>Zone365,"Europe/Zaporozhye"=>Zone366,"Europe/Simferopol"=>Zone367,"Africa/Kampala"=>Zone368,"Pacific/Johnston"=>Zone369,"Pacific/Midway"=>Zone370,"Pacific/Wake"=>Zone371,"America/New_York"=>Zone372,"America/Detroit"=>Zone373,"America/Kentucky/Louisville"=>Zone374,"America/Kentucky/Monticello"=>Zone375,"America/Indiana/Indianapolis"=>Zone376,"America/Indiana/Vincennes"=>Zone377,"America/Indiana/Winamac"=>Zone378,"America/Indiana/Marengo"=>Zone379,"America/Indiana/Petersburg"=>Zone380,"America/Indiana/Vevay"=>Zone381,"America/Chicago"=>Zone382,"America/Indiana/Tell_City"=>Zone383,"America/Indiana/Knox"=>Zone384,"America/Menominee"=>Zone385,"America/North_Dakota/Center"=>Zone386,"America/North_Dakota/New_Salem"=>Zone387,"America/North_Dakota/Beulah"=>Zone388,"America/Denver"=>Zone389,"America/Boise"=>Zone390,"America/Shiprock"=>Zone391,"America/Phoenix"=>Zone392,"America/Los_Angeles"=>Zone393,"America/Anchorage"=>Zone394,"America/Juneau"=>Zone395,"America/Sitka"=>Zone396,"America/Yakutat"=>Zone397,"America/Nome"=>Zone398,"America/Adak"=>Zone399,
 	"America/Metlakatla"=>Zone400,"Pacific/Honolulu"=>Zone401,"America/Montevideo"=>Zone402,"Asia/Samarkand"=>Zone403,"Asia/Tashkent"=>Zone404,"Europe/Vatican"=>Zone405,"America/St_Vincent"=>Zone406,"America/Caracas"=>Zone407,"America/Tortola"=>Zone408,"America/St_Thomas"=>Zone409,"Asia/Ho_Chi_Minh"=>Zone410,"Pacific/Efate"=>Zone411,"Pacific/Wallis"=>Zone412,"Pacific/Apia"=>Zone413,"Asia/Aden"=>Zone414,"Indian/Mayotte"=>Zone415,"Africa/Johannesburg"=>Zone416,"Africa/Lusaka"=>Zone417,"Africa/Harare"=>Zone418]
 
-#need default offsets, abbreviations
+#Default standard-time offsets and abbreviations
 const OFFSETS = (DataType=>Int)[Zone0=>0,Zone1=>3600,Zone2=>14400,Zone3=>16200,Zone4=>-14400,Zone5=>-14400,Zone6=>3600,Zone7=>14400,Zone8=>3600,Zone9=>46800,Zone10=>46800,Zone11=>-10800,Zone12=>-10800,Zone13=>18000,Zone14=>25200,Zone15=>28800,Zone16=>21600,Zone17=>36000,Zone18=>10800,Zone19=>-10800,Zone20=>-10800,Zone21=>-10800,Zone22=>-10800,Zone23=>-10800,Zone24=>-10800,Zone25=>-10800,Zone26=>-10800,Zone27=>-10800,Zone28=>-10800,Zone29=>-10800,Zone30=>-10800,Zone31=>-39600,Zone32=>3600,Zone33=>39600,Zone34=>39600,Zone35=>39600,Zone36=>39600,Zone37=>39600,Zone38=>39600,Zone39=>37800,Zone40=>36000,Zone41=>36000,Zone42=>37800,Zone43=>34200,Zone44=>28800,Zone45=>35100,Zone46=>-14400,Zone47=>7200,Zone48=>14400,Zone49=>3600,
 	Zone50=>-14400,Zone51=>21600,Zone52=>3600,Zone53=>0,Zone54=>7200,Zone55=>10800,Zone56=>7200,Zone57=>3600,Zone58=>-14400,Zone59=>-14400,Zone60=>28800,Zone61=>-14400,Zone62=>-14400,Zone63=>-7200,Zone64=>-10800,Zone65=>-10800,Zone66=>-10800,Zone67=>-7200,Zone68=>-10800,Zone69=>-10800,Zone70=>-7200,Zone71=>-10800,Zone72=>-10800,Zone73=>-10800,Zone74=>-14400,Zone75=>-14400,Zone76=>-14400,Zone77=>-14400,Zone78=>-14400,Zone79=>-18000,Zone80=>21600,Zone81=>7200,Zone82=>10800,Zone83=>-21600,Zone84=>-12600,Zone85=>-14400,Zone86=>-14400,Zone87=>-14400,Zone88=>-14400,Zone89=>-14400,Zone90=>-18000,Zone91=>-18000,Zone92=>-18000,Zone93=>-18000,Zone94=>-18000,Zone95=>-18000,Zone96=>-21600,Zone97=>-18000,Zone98=>-21600,Zone99=>-21600,
 	Zone100=>-21600,Zone101=>-21600,Zone102=>-21600,Zone103=>-25200,Zone104=>-25200,Zone105=>-25200,Zone106=>-25200,Zone107=>-25200,Zone108=>-25200,Zone109=>-28800,Zone110=>-28800,Zone111=>-28800,Zone112=>23400,Zone113=>3600,Zone114=>7200,Zone115=>3600,Zone116=>3600,Zone117=>3600,Zone118=>0,Zone119=>-36000,Zone120=>-10800,Zone121=>-18000,Zone122=>3600,Zone123=>28800,Zone124=>28800,Zone125=>28800,Zone126=>28800,Zone127=>28800,Zone128=>-18000,Zone129=>-21600,Zone130=>-18000,Zone131=>-3600,Zone132=>-14400,Zone133=>25200,Zone134=>7200,Zone135=>3600,Zone136=>3600,Zone137=>3600,Zone138=>10800,Zone139=>3600,Zone140=>-14400,Zone141=>-14400,Zone142=>3600,Zone143=>-18000,Zone144=>-21600,Zone145=>7200,Zone146=>7200,Zone147=>0,Zone148=>10800,Zone149=>3600,
@@ -44,7 +45,7 @@ const ABBREVIATIONS = (DataType=>ASCIIString)[Zone0=>"UTC",Zone1=>"CET",Zone2=>"
 	Zone350=>"TFT",Zone351=>"GMT",Zone352=>"ICT",Zone353=>"TJT",Zone354=>"TKT",Zone355=>"TLT",Zone356=>"TMT",Zone357=>"CET",Zone358=>"TOT",Zone359=>"EET",Zone360=>"AST",Zone361=>"TVT",Zone362=>"CST",Zone363=>"EAT",Zone364=>"EET",Zone365=>"EET",Zone366=>"EET",Zone367=>"EET",Zone368=>"EAT",Zone369=>"HST",Zone370=>"SST",Zone371=>"WAKT",Zone372=>"EST",Zone373=>"EST",Zone374=>"EST",Zone375=>"EST",Zone376=>"EST",Zone377=>"EST",Zone378=>"EST",Zone379=>"EST",Zone380=>"EST",Zone381=>"EST",Zone382=>"CST",Zone383=>"CST",Zone384=>"CST",Zone385=>"CST",Zone386=>"CST",Zone387=>"CST",Zone388=>"CST",Zone389=>"MST",Zone390=>"MST",Zone391=>"MST",Zone392=>"MST",Zone393=>"PST",Zone394=>"AKST",Zone395=>"AKST",Zone396=>"AKST",Zone397=>"AKST",Zone398=>"AKST",Zone399=>"HAST",
 	Zone400=>"MeST",Zone401=>"HST",Zone402=>"UYST",Zone403=>"UZT",Zone404=>"UZT",Zone405=>"CET",Zone406=>"AST",Zone407=>"VET",Zone408=>"AST",Zone409=>"AST",Zone410=>"ICT",Zone411=>"VUT",Zone412=>"WFT",Zone413=>"WSDT",Zone414=>"AST",Zone415=>"EAT",Zone416=>"SAST",Zone417=>"CAT",Zone418=>"CAT"]
 
-const DATAFILES = (DataType=>Symbol)[Zone0=>:Zone0DATA  ,Zone1=>:Zone1DATA  ,Zone2=>:Zone2DATA  ,Zone3=>:Zone3DATA  ,Zone4=>:Zone4DATA  ,Zone5=>:Zone5DATA  ,Zone6=>:Zone6DATA  ,Zone7=>:Zone7DATA  ,Zone8=>:Zone8DATA  ,Zone9=>:Zone9DATA  ,Zone10=>:Zone10DATA ,Zone11=>:Zone11DATA ,Zone12=>:Zone12DATA ,Zone13=>:Zone13DATA ,Zone14=>:Zone14DATA ,Zone15=>:Zone15DATA ,Zone16=>:Zone16DATA ,Zone17=>:Zone17DATA ,Zone18=>:Zone18DATA ,Zone19=>:Zone19DATA ,Zone20=>:Zone20DATA ,Zone21=>:Zone21DATA ,Zone22=>:Zone22DATA ,Zone23=>:Zone23DATA ,Zone24=>:Zone24DATA ,Zone25=>:Zone25DATA ,Zone26=>:Zone26DATA ,Zone27=>:Zone27DATA ,Zone28=>:Zone28DATA ,Zone29=>:Zone29DATA ,Zone30=>:Zone30DATA ,Zone31=>:Zone31DATA ,Zone32=>:Zone32DATA ,Zone33=>:Zone33DATA ,Zone34=>:Zone34DATA ,Zone35=>:Zone35DATA ,Zone36=>:Zone36DATA ,Zone37=>:Zone37DATA ,Zone38=>:Zone38DATA ,Zone39=>:Zone39DATA ,Zone40=>:Zone40DATA ,Zone41=>:Zone41DATA ,Zone42=>:Zone42DATA ,Zone43=>:Zone43DATA ,Zone44=>:Zone44DATA ,Zone45=>:Zone45DATA ,Zone46=>:Zone46DATA ,Zone47=>:Zone47DATA ,Zone48=>:Zone48DATA ,Zone49=>:Zone49DATA ,
+const DATAFILES = (DataType=>Symbol)[Zone1=>:Zone1DATA  ,Zone2=>:Zone2DATA  ,Zone3=>:Zone3DATA  ,Zone4=>:Zone4DATA  ,Zone5=>:Zone5DATA  ,Zone6=>:Zone6DATA  ,Zone7=>:Zone7DATA  ,Zone8=>:Zone8DATA  ,Zone9=>:Zone9DATA  ,Zone10=>:Zone10DATA ,Zone11=>:Zone11DATA ,Zone12=>:Zone12DATA ,Zone13=>:Zone13DATA ,Zone14=>:Zone14DATA ,Zone15=>:Zone15DATA ,Zone16=>:Zone16DATA ,Zone17=>:Zone17DATA ,Zone18=>:Zone18DATA ,Zone19=>:Zone19DATA ,Zone20=>:Zone20DATA ,Zone21=>:Zone21DATA ,Zone22=>:Zone22DATA ,Zone23=>:Zone23DATA ,Zone24=>:Zone24DATA ,Zone25=>:Zone25DATA ,Zone26=>:Zone26DATA ,Zone27=>:Zone27DATA ,Zone28=>:Zone28DATA ,Zone29=>:Zone29DATA ,Zone30=>:Zone30DATA ,Zone31=>:Zone31DATA ,Zone32=>:Zone32DATA ,Zone33=>:Zone33DATA ,Zone34=>:Zone34DATA ,Zone35=>:Zone35DATA ,Zone36=>:Zone36DATA ,Zone37=>:Zone37DATA ,Zone38=>:Zone38DATA ,Zone39=>:Zone39DATA ,Zone40=>:Zone40DATA ,Zone41=>:Zone41DATA ,Zone42=>:Zone42DATA ,Zone43=>:Zone43DATA ,Zone44=>:Zone44DATA ,Zone45=>:Zone45DATA ,Zone46=>:Zone46DATA ,Zone47=>:Zone47DATA ,Zone48=>:Zone48DATA ,Zone49=>:Zone49DATA ,
 	Zone50=>:Zone50DATA ,Zone51=>:Zone51DATA ,Zone52=>:Zone52DATA ,Zone53=>:Zone53DATA ,Zone54=>:Zone54DATA ,Zone55=>:Zone55DATA ,Zone56=>:Zone56DATA ,Zone57=>:Zone57DATA ,Zone58=>:Zone58DATA ,Zone59=>:Zone59DATA ,Zone60=>:Zone60DATA ,Zone61=>:Zone61DATA ,Zone62=>:Zone62DATA ,Zone63=>:Zone63DATA ,Zone64=>:Zone64DATA ,Zone65=>:Zone65DATA ,Zone66=>:Zone66DATA ,Zone67=>:Zone67DATA ,Zone68=>:Zone68DATA ,Zone69=>:Zone69DATA ,Zone70=>:Zone70DATA ,Zone71=>:Zone71DATA ,Zone72=>:Zone72DATA ,Zone73=>:Zone73DATA ,Zone74=>:Zone74DATA ,Zone75=>:Zone75DATA ,Zone76=>:Zone76DATA ,Zone77=>:Zone77DATA ,Zone78=>:Zone78DATA ,Zone79=>:Zone79DATA ,Zone80=>:Zone80DATA ,Zone81=>:Zone81DATA ,Zone82=>:Zone82DATA ,Zone83=>:Zone83DATA ,Zone84=>:Zone84DATA ,Zone85=>:Zone85DATA ,Zone86=>:Zone86DATA ,Zone87=>:Zone87DATA ,Zone88=>:Zone88DATA ,Zone89=>:Zone89DATA ,Zone90=>:Zone90DATA ,Zone91=>:Zone91DATA ,Zone92=>:Zone92DATA ,Zone93=>:Zone93DATA ,Zone94=>:Zone94DATA ,Zone95=>:Zone95DATA ,Zone96=>:Zone96DATA ,Zone97=>:Zone97DATA ,Zone98=>:Zone98DATA ,Zone99=>:Zone99DATA ,
 	Zone100=>:Zone100DATA,Zone101=>:Zone101DATA,Zone102=>:Zone102DATA,Zone103=>:Zone103DATA,Zone104=>:Zone104DATA,Zone105=>:Zone105DATA,Zone106=>:Zone106DATA,Zone107=>:Zone107DATA,Zone108=>:Zone108DATA,Zone109=>:Zone109DATA,Zone110=>:Zone110DATA,Zone111=>:Zone111DATA,Zone112=>:Zone112DATA,Zone113=>:Zone113DATA,Zone114=>:Zone114DATA,Zone115=>:Zone115DATA,Zone116=>:Zone116DATA,Zone117=>:Zone117DATA,Zone118=>:Zone118DATA,Zone119=>:Zone119DATA,Zone120=>:Zone120DATA,Zone121=>:Zone121DATA,Zone122=>:Zone122DATA,Zone123=>:Zone123DATA,Zone124=>:Zone124DATA,Zone125=>:Zone125DATA,Zone126=>:Zone126DATA,Zone127=>:Zone127DATA,Zone128=>:Zone128DATA,Zone129=>:Zone129DATA,Zone130=>:Zone130DATA,Zone131=>:Zone131DATA,Zone132=>:Zone132DATA,Zone133=>:Zone133DATA,Zone134=>:Zone134DATA,Zone135=>:Zone135DATA,Zone136=>:Zone136DATA,Zone137=>:Zone137DATA,Zone138=>:Zone138DATA,Zone139=>:Zone139DATA,Zone140=>:Zone140DATA,Zone141=>:Zone141DATA,Zone142=>:Zone142DATA,Zone143=>:Zone143DATA,Zone144=>:Zone144DATA,Zone145=>:Zone145DATA,Zone146=>:Zone146DATA,Zone147=>:Zone147DATA,Zone148=>:Zone148DATA,Zone149=>:Zone149DATA,
 	Zone150=>:Zone150DATA,Zone151=>:Zone151DATA,Zone152=>:Zone152DATA,Zone153=>:Zone153DATA,Zone154=>:Zone154DATA,Zone155=>:Zone155DATA,Zone156=>:Zone156DATA,Zone157=>:Zone157DATA,Zone158=>:Zone158DATA,Zone159=>:Zone159DATA,Zone160=>:Zone160DATA,Zone161=>:Zone161DATA,Zone162=>:Zone162DATA,Zone163=>:Zone163DATA,Zone164=>:Zone164DATA,Zone165=>:Zone165DATA,Zone166=>:Zone166DATA,Zone167=>:Zone167DATA,Zone168=>:Zone168DATA,Zone169=>:Zone169DATA,Zone170=>:Zone170DATA,Zone171=>:Zone171DATA,Zone172=>:Zone172DATA,Zone173=>:Zone173DATA,Zone174=>:Zone174DATA,Zone175=>:Zone175DATA,Zone176=>:Zone176DATA,Zone177=>:Zone177DATA,Zone178=>:Zone178DATA,Zone179=>:Zone179DATA,Zone180=>:Zone180DATA,Zone181=>:Zone181DATA,Zone182=>:Zone182DATA,Zone183=>:Zone183DATA,Zone184=>:Zone184DATA,Zone185=>:Zone185DATA,Zone186=>:Zone186DATA,Zone187=>:Zone187DATA,Zone188=>:Zone188DATA,Zone189=>:Zone189DATA,Zone190=>:Zone190DATA,Zone191=>:Zone191DATA,Zone192=>:Zone192DATA,Zone193=>:Zone193DATA,Zone194=>:Zone194DATA,Zone195=>:Zone195DATA,Zone196=>:Zone196DATA,Zone197=>:Zone197DATA,Zone198=>:Zone198DATA,Zone199=>:Zone199DATA,
@@ -54,14 +55,14 @@ const DATAFILES = (DataType=>Symbol)[Zone0=>:Zone0DATA  ,Zone1=>:Zone1DATA  ,Zon
 	Zone350=>:Zone350DATA,Zone351=>:Zone351DATA,Zone352=>:Zone352DATA,Zone353=>:Zone353DATA,Zone354=>:Zone354DATA,Zone355=>:Zone355DATA,Zone356=>:Zone356DATA,Zone357=>:Zone357DATA,Zone358=>:Zone358DATA,Zone359=>:Zone359DATA,Zone360=>:Zone360DATA,Zone361=>:Zone361DATA,Zone362=>:Zone362DATA,Zone363=>:Zone363DATA,Zone364=>:Zone364DATA,Zone365=>:Zone365DATA,Zone366=>:Zone366DATA,Zone367=>:Zone367DATA,Zone368=>:Zone368DATA,Zone369=>:Zone369DATA,Zone370=>:Zone370DATA,Zone371=>:Zone371DATA,Zone372=>:Zone372DATA,Zone373=>:Zone373DATA,Zone374=>:Zone374DATA,Zone375=>:Zone375DATA,Zone376=>:Zone376DATA,Zone377=>:Zone377DATA,Zone378=>:Zone378DATA,Zone379=>:Zone379DATA,Zone380=>:Zone380DATA,Zone381=>:Zone381DATA,Zone382=>:Zone382DATA,Zone383=>:Zone383DATA,Zone384=>:Zone384DATA,Zone385=>:Zone385DATA,Zone386=>:Zone386DATA,Zone387=>:Zone387DATA,Zone388=>:Zone388DATA,Zone389=>:Zone389DATA,Zone390=>:Zone390DATA,Zone391=>:Zone391DATA,Zone392=>:Zone392DATA,Zone393=>:Zone393DATA,Zone394=>:Zone394DATA,Zone395=>:Zone395DATA,Zone396=>:Zone396DATA,Zone397=>:Zone397DATA,Zone398=>:Zone398DATA,Zone399=>:Zone399DATA,
 	Zone400=>:Zone400DATA,Zone401=>:Zone401DATA,Zone402=>:Zone402DATA,Zone403=>:Zone403DATA,Zone404=>:Zone404DATA,Zone405=>:Zone405DATA,Zone406=>:Zone406DATA,Zone407=>:Zone407DATA,Zone408=>:Zone408DATA,Zone409=>:Zone409DATA,Zone410=>:Zone410DATA,Zone411=>:Zone411DATA,Zone412=>:Zone412DATA,Zone413=>:Zone413DATA,Zone414=>:Zone414DATA,Zone415=>:Zone415DATA,Zone416=>:Zone416DATA,Zone417=>:Zone417DATA,Zone418=>:Zone418DATA]
 
-#Zone id retrieval function
-timezone(x::String) = get(TIMEZONES,x,Zone0)
-const UNIXEPOCH = 62135596800 #Rata Die seconds since 1970-01-01T00:00:00 UTC
-
-const FILEPATH = Base.dirname(Base.source_path())
 #These functions retrieves the correct offset/abbreviation for a given time/timezone
-setoffset(tz::Type{Zone0},secs) = 0
-function setoffset{T<:TimeZone}(tz::Type{T},secs)
+const FILEPATH = Base.dirname(Base.source_path())
+function setoffset{T<:TimeZone}(tz::Type{T},secs,y,s)
+	secs1 = secs - (1902 < y < 2038 ? _setoffset(tz,secs) : get(OFFSETS,tz,0))
+    secs1 += y < 1972 ? 0 : !USELEAPSECONDS ? 0 : s == 60 ? leaps1(secs1) : leaps(secs1)
+    return secs - secs1
+end
+function _setoffset{T<:TimeZone}(tz::Type{T},secs)
 	sym = get(DATAFILES,tz,:Zone382DATA)
 	if !isdefined(Datetime,sym)
 		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
@@ -92,7 +93,6 @@ function _findfirst(tzdata,secs)
 	return tzdata[row,3]
 	end
 end
-getoffset(tz::Type{Zone0},secs) = 0
 function getoffset{T<:TimeZone}(tz::Type{T},secs)
 	sym = get(DATAFILES,tz,:Zone382DATA)
 	if !isdefined(Datetime,sym)
@@ -104,7 +104,24 @@ function getoffset{T<:TimeZone}(tz::Type{T},secs)
 		tzdata = eval(sym)
 	end
 	(secs < tzdata[1,2] || secs > tzdata[end,2]) && return get(OFFSETS,tz,0)
-	return _findfirst1(tzdata,int64(secs),3)
+	off = _findfirst1(tzdata,int64(secs),3)
+	off -= (!USELEAPSECONDS ? 0 : leaps(secs))
+	return off
+end
+function getoffset_secs{T<:TimeZone}(tz::Type{T},secs)
+	sym = get(DATAFILES,tz,:Zone382DATA)
+	if !isdefined(Datetime,sym)
+		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
+			tzdata = deserialize(ff)
+		end
+		@eval global $sym = $tzdata
+	else
+		tzdata = eval(sym)
+	end
+	(secs < tzdata[1,2] || secs > tzdata[end,2]) && return get(OFFSETS,tz,0)
+	off = _findfirst1(tzdata,int64(secs),3)
+	off -= (!USELEAPSECONDS ? 0 : leaps1(secs))
+	return off
 end
 function _findfirst1(tzdata,secs,col)
 	i = 1
@@ -114,12 +131,13 @@ function _findfirst1(tzdata,secs,col)
 	end 
 	return tzdata[i-1,col]
 end
-getabr(tz::Type{Zone0},secs) = "UTC"
-function getabr{T<:TimeZone}(tz::Type{T},secs)
+function getabr{T<:TimeZone}(tz::Type{T},secs,y)
+	return 1902 < y < 2038 ? _getabr(tz,secs) : get(ABBREVIATIONS,tz,"UTC")
+end
+function _getabr{T<:TimeZone}(tz::Type{T},secs)
 	tzdata = eval(get(DATAFILES,tz,:Zone382DATA))
 	return _findfirst1(tzdata,int64(secs),1)
 end
-#function _findbinary(tzdata,secs,col) #binary search for larger datasets
 
 #typealiases for most common timezone abbreviations
 #Used most common/populated zone where multiple timezones used same abbreviation
@@ -275,36 +293,11 @@ typealias WET Zone299; export WET
 typealias YAKT Zone318; export YAKT
 typealias YEKT Zone312; export YEKT
 
-#Script to generate ZoneXDATA.csv files
+#Script to generate ZoneXDATA Dicts
 # cd("C:/Users/karbarcca/Google Drive/Dropbox/Dropbox/GitHub/DateTime.jl/src/test")
-# import Base.serialize
-# function serialize(s, a::Array)
-#     Base.writetag(s, Array)
-#     elty = eltype(a)
-#     serialize(s, elty)
-#     serialize(s, size(a))
-#     if isbits(elty)
-#         Base.serialize_array_data(s, a)
-#     else
-#         for i = 1:length(a)
-#             if isdefined(a, i)
-#             	if typeof(a[i]) <: String
-# 	            	t = a[i]
-# 	            	off = t.offset+1
-# 	                serialize(s, t.string[off:(off+t.endof-1)])
-# 	            else
-# 	            	serialize(s, a[i])
-# 	            end
-#             else
-#                 Base.writetag(s, UndefRefTag)
-#             end
-#         end
-#     end
-# end
-# const UNIXEPOCH = 62135596800
 # tzall = readdlm("timezone.csv",',')
 # tzall[:,1] = map(int,tzall[:,1])
-# tzall[:,3] = map(x->int64(x)+UNIXEPOCH,tzall[:,3])
+# tzall[:,3] = map(x->int64(x)+Datetime2.UNIXEPOCH,tzall[:,3])
 # tzall[:,4] = map(int,tzall[:,4])
 # counter = 1
 # for i = 1:418

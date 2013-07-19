@@ -34,7 +34,7 @@ julia> y,m,d = year(2013),month(7),day(9)
 julia> t = date(y,m,d)
 2013-07-09
 
-julia> t = datetime(y,m,d,0,0,0)
+julia> t = datetime(y,m,d)
 2013-07-09T00:00:00 UTC
 ```
 Currently parsing dates (i.e. `ymd("2013-7-9")`) is not supported, but planned.
@@ -91,11 +91,23 @@ julia> dayofyear(t)
 
 julia> week(t)
 28
+
+julia> dayofweekinmonth(t) #is it 1st, 2nd, 3rd, 4th, or 5th Tuesday in July?
+2
+
+julia> daysofweekinmonth(t) #does this date's day of week have 4 or 5 in the month?
+5
+
+julia> firstdayofweek(t)
+2013-07-08T15:11:19
+
+julia> lastdayofweek(t)
+2013-07-14T15:11:19
 ```
 ###Date Arithmetic
 Date arithmetic is implemented as normal and supports accurate precision to the day level (useful for ignoring timezone
-and leap second variations). DateTime arithmetic is supported through the shift operators (`<<`, `>>`) and use standard
-second-period conversions for shifting (i.e. 86400s/day, 31536000s/year, etc.). 
+and leap second variations). DateTime arithmetic is also supported through the `+` and `-` and use similar
+_calendrical_ calculations as Date arithmetic (i.e. it's not just rolling the datetime forward by a fixed number of seconds).
 ```julia
 julia> dt = date(2012,2,29)
 2012-02-29
@@ -163,7 +175,7 @@ true
 ```
 ###Date Ranges
 Date ranges can be useful for generating sequences of dates. Date ranges inherit from Julia's numeric ranges and are 
-used similarly. 
+used similarly. DateTime ranges are implemented as well.
 ```julia
 julia> dt1 = date(2000,1,1)
 2000-01-01
@@ -233,12 +245,69 @@ julia> [r]
  2000-01-02
  2000-01-01
  ```
- ###Planned Features/Known Issues
- * Parsing string dates
- * DateTime ranges
- * Faster timezone support (certain timezones are 3x-4x slower than using default "UTC")
- * Possibly changing (<<,>>) operators with DateTimes to more normal (+,-)
- * Possibly a Time type that would be field-based similar to the Date type for Hour, Minute, and Second
- * Possibly implement "Rational division" for periods (e.g. 3/4 days)
- * Temporal expressions a la [runt](https://github.com/mlipper/runt/blob/master/doc/tutorial_te.md)
- * More extensive accuracy testing (there are a LOT of excpetions to potentially check for with dates)
+ Recurring events with irregular frequencies (similar to Ruby's runt, or Java's Temporal Expressions) are also supported through a combination of a DateRange (actually DateRange1) and the use of a function instead of a Period step. This can be useful for creating ranges of holidays, events that occur on a certain day of the week or certain days of the month.
+ The example below shows how to get the date of the U.S. holiday of Thanksgiving which always occurs on the 4th Thursday of November. It uses both the colon (:) syntax as well as the `recur` function with a `do` block. The 2nd example shows how to get a range of Mondays and Wednesdays between two dates.
+ ```julia
+julia> dt = date(2009,1,1)
+2009-01-01
+
+julia> dt2 = date(2013,1,1)
+2013-01-01
+
+julia> Thanksgiving = x->dayofweek(x)==Thursday && month(x)==November && dayofweekinmonth(x)==4
+# function
+
+julia> f = dt:Thanksgiving:dt2
+2009-11-26:# function:2012-11-22
+
+julia> [f]
+4-element Date{ISOCalendar} Array:
+ 2009-11-26
+ 2010-11-25
+ 2011-11-24
+ 2012-11-22
+
+julia> ff = recur(dt:dt2) do x
+	dayofweek(x)==4 && 
+	month(x)==11 && 
+	dayofweekinmonth(x)==4
+end
+2009-11-26:# function:2012-11-22
+
+julia> [ff]
+4-element Date{ISOCalendar} Array:
+ 2009-11-26
+ 2010-11-25
+ 2011-11-24
+ 2012-11-22
+
+julia> dt = date(2012,10,1)
+2012-10-01
+
+julia> r = dt:(x->contains((Monday,Wednesday),dayofweek(x))):dt2
+2012-10-01:# function:2012-12-31
+
+julia> [r]
+27-element Date{ISOCalendar} Array:
+ 2012-10-01
+ 2012-10-03
+ 2012-10-08
+ 2012-10-10
+ 2012-10-15
+ 2012-10-17
+ 2012-10-22
+ 2012-10-24
+ 2012-10-29
+ 2012-10-31
+ â‹®         
+ 2012-11-28
+ 2012-12-03
+ 2012-12-05
+ 2012-12-10
+ 2012-12-12
+ 2012-12-17
+ 2012-12-19
+ 2012-12-24
+ 2012-12-26
+ 2012-12-31
+ ``` 

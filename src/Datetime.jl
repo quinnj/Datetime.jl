@@ -2,13 +2,18 @@ module Datetime
 
 importall Base
 
-export Calendar, ISOCalendar, TimeZone, Date, DateTime, DateRange1,
+export Calendar, ISOCalendar, TimeZone, CALENDAR, TIMEZONE,
+	Date, DateTime, DateRange, DateRange1, DateTimeRange, DateTimeRange1,
     Year, Month, Week, Day, Hour, Minute, Second,
     year, month, week, day, hour, minute, second,
     years,months,weeks,days,hours,minutes,seconds,
-    addwrap, subwrap, date, unix2datetime, datetime,
-    isleap, isleapday, lastday, dayofweek, dayofyear, isdate,
-    now, calendar, timezone, setcalendar, settimezone
+    addwrap, subwrap, date, datetime, unix2datetime, totaldays,
+    isleap, lastdayofmonth, dayofweek, dayofyear, isdate, isdatetime,
+    dayofweekinmonth, daysofweekinmonth, firstdayofweek, lastdayofweek,
+    recur, now, today, calendar, timezone, setcalendar, settimezone,
+    Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday,
+    January, February, March, April, May, June, July,
+    August, September, October, November, December
 
 abstract AbstractTime
 abstract Calendar <: AbstractTime
@@ -18,23 +23,19 @@ CALENDAR = ISOCalendar
 setcalendar{C<:Calendar}(cal::Type{C}) = (global CALENDAR = cal)
 
 abstract TimeZone <: AbstractTime
-include("timezone.jl")
+include("Timezone.jl")
 #Set the default timezone to use; overriding this will affect module-wide defaults
-#typealias UTC Zone0
 TIMEZONE = UTC
 settimezone{T<:TimeZone}(tz::Type{T}) = (global TIMEZONE = tz)
 
 abstract TimeType <: AbstractTime
-#bitstype 64 Date{C <: Calendar}					<: TimeType
-#bitstype 64 Time{C <: Calendar}			 		<: TimeType
-#bitstype 64 DateTime{C <: Calendar, T <: TimeZone} <: TimeType
+bitstype 64 Date{C <: Calendar}						<: TimeType
+bitstype 64 DateTime{C <: Calendar, T <: TimeZone} 	<: TimeType
 
 abstract Period 	<: AbstractTime
 abstract DatePeriod <: Period
 abstract TimePeriod <: Period
 typealias PeriodMath   Union(Real,Period)
-typealias DateMath     Union(Real,DatePeriod)
-typealias TimeMath     Union(Real,TimePeriod)
 
 bitstype 32 Year{C<:Calendar}   <: DatePeriod
 bitstype 32 Month{C<:Calendar}  <: DatePeriod
@@ -45,6 +46,339 @@ bitstype 32 Minute{C<:Calendar} <: TimePeriod
 bitstype 32 Second{C<:Calendar} <: TimePeriod
 
 #Conversion/Promotion
+convert{T<:TimeType}(::Type{T},x::Int64) = Base.box(T,Base.unbox(Int64,x))
+convert{T<:TimeType}(::Type{Int64},x::T) = Base.box(Int64,Base.unbox(T,x))
+promote_rule{T<:TimeType,R<:Real}(::Type{T},::Type{R}) = R
+convert{T<:TimeType}(::Type{T},x::Real) = convert(T,int64(x))
+convert{R<:Real}(::Type{R}, x::TimeType) = convert(R,int64(x))
+convert(::Type{Date},x::Int64) = convert(Date{CALENDAR},x)
+promote_rule{D<:Date}(::Type{D},::Type{D}) = D{CALENDAR}
+convert{D<:Date}(::Type{Date{ISOCalendar}},x::D) = convert(Date{ISOCalendar},int64(x))
+convert(::Type{DateTime},x::Int64) = convert(DateTime{CALENDAR,TIMEZONE},x)
+promote_rule{D<:DateTime}(::Type{D},::Type{D}) = D{CALENDAR,UTC}
+convert{D<:DateTime}(::Type{DateTime{ISOCalendar,UTC}},x::D) = convert(DateTime{ISOCalendar,UTC},int64(x))
+promote_rule{D<:Date,DD<:DateTime}(::Type{D},::Type{DD}) = D{CALENDAR}
+convert{D<:DateTime}(::Type{Date},x::D) = convert(Date{CALENDAR},_days(x))
+convert{D<:Date}(::Type{DateTime},x::D) = convert(DateTime{CALENDAR,TIMEZONE},86400*x)
+hash(x::TimeType) = hash(int64(x))
+length(::TimeType) = 1
+isless{T<:TimeType}(x::T,y::T) = isless(int64(x),int64(y))
+isless(x::TimeType,y::TimeType) = isless(promote(x,y)...)
+isless(x::TimeType,y::Real) = isless(int64(x),int64(y))
+isless(x::Real,y::TimeType) = isless(int64(x),int64(y))
+isequal{T<:TimeType}(x::T,y::T) = isequal(int64(x),int64(y))
+isequal(x::TimeType,y::Real) = isequal(int64(x),int64(y))
+isequal(x::Real,y::TimeType) = isequal(int64(x),int64(y))
+isequal(x::TimeType,y::TimeType) = isequal(promote(x,y)...)
+
+#Date algorithm implementations
+#Source: Peter Baum - http://mysite.verizon.net/aesir_research/date/date0.htm
+#Convert y,m,d to # of Rata Die days
+yeardays(y::Int64) = 365y + fld(y,4) - fld(y,100) + fld(y,400)
+const monthdays = [306, 337, 0, 31, 61, 92, 122, 153, 184, 214, 245, 275]
+totaldays(y::Int64,m::Int64,d::Int64) = d + monthdays[m] + yeardays(m<3 ? y-1 : y) - 307
+#Convert # of Rata Die days to proleptic Gregorian calendar y,m,d,w
+function _year(dt::Int64)
+	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
+	m = div(5c+456,153); return m > 12 ? y+1 : y	
+end
+function _month(dt::Int64)
+	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
+	m = div(5c+456,153); return m > 12 ? m-12 : m
+end
+function _day(dt::Int64)
+	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
+	m = div(5c+456,153); d = c - div(153m-457,5); return d
+end
+function _day2date(dt::Int64)
+	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
+	m = div(5c+456,153); d = c - div(153m-457,5); return m > 12 ? (y+1,m-12,d) : (y,m,d)
+end
+function _week(dt::Int64)
+	w = fld(dt,7) % 20871
+	c = fld((w + (w >= 10435)),5218)
+	w = (w + (w >= 10435)) % 5218
+	w = (w*28+(15,23,3,11)[c+1]) % 1461
+	return fld(w,28) + 1
+end
+const DAYSINMONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
+isleap(y::Int64) = ((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)
+lastdayofmonth(y::Int64,m::Int64) = DAYSINMONTH[m] + (m == 2 && isleap(y))
+
+#TimeType constructors
+setoffset(tz::Type{UTC},secs,y,s) = 0 - (y < 1972 ? 0 : !USELEAPSECONDS ? 0 : s == 60 ? leaps1(secs) : leaps(secs))
+getoffset(tz::Type{UTC},secs) = 0 - (!USELEAPSECONDS ? 0 : leaps(secs))
+getoffset_secs(tz::Type{UTC},secs) = 0 - (!USELEAPSECONDS ? 0 : leaps1(secs))
+getabr(tz::Type{UTC},secs,y) = "UTC"
+#DateTime constructor with timezone and/or leap seconds
+USELEAPSECONDS = true
+useleapseconds(x::Bool) = (global USELEAPSECONDS = x)
+const _leaps = [62214393599,62230291199,62261827199,62293363199,62324899199,62356521599,62388057599,62419593599,62451129599,62498390399,62529926399,62561462399,62624620799,62703590399,62766748799,62798284799,62845545599,62877081599,62908617599,62956051199,63003311999,63050745599,63271670399,63366364799,63476697599,9223372036854775807]
+const _leaps1 = [62214393600,62230291201,62261827202,62293363203,62324899204,62356521605,62388057606,62419593607,62451129608,62498390409,62529926410,62561462411,62624620812,62703590413,62766748814,62798284815,62845545616,62877081617,62908617618,62956051219,63003312020,63050745621,63271670422,63366364823,63476697624,9223372036854775807]
+leaps(secs::Union(DateTime,Int64))  = (i = 1; while true; @inbounds (_leaps[i]  >= secs && break); i+=1 end; return i-1)
+leaps1(secs::Union(DateTime,Int64)) = (i = 1; while true; @inbounds (_leaps1[i] >= secs && break); i+=1 end; return i-1)
+datetime(y::Int64,m::Int64,d::Int64,h::Int64,mi::Int64,s::Int64,tz::String) = datetime(y,m,d,h,mi,s,CALENDAR,timezone(tz))
+
+date{C<:Calendar}(y::Int64,m::Int64=1,d::Int64=1,cal::Type{C}=CALENDAR) = convert(Date{cal},totaldays(y,m,d))
+date{C<:Calendar}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,cal::Type{C}=CALENDAR) = date(int64(y),int64(m),int64(d),cal)
+datetime{C<:Calendar,T<:TimeZone}(y::Int64,m::Int64=1,d::Int64=1,h::Int64=0,mi::Int64=0,s::Int64=0,tz::Type{T}=TIMEZONE,cal::Type{C}=CALENDAR) = 
+	(secs = s + 60mi + 3600h + 86400*totaldays(y,m,d); return convert(DateTime{cal,tz}, secs - setoffset(tz,secs,y,s)))
+datetime{C<:Calendar,T<:TimeZone}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,h::PeriodMath=0,mi::PeriodMath=0,s::PeriodMath=0,cal::Type{C}=CALENDAR,tz::Type{T}=TIMEZONE) = 
+	datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),tz,cal)
+
+#Accessor/trait functions
+typealias DateTimeDate Union(DateTime,Date)
+_days(dt::Date) = int64(dt)
+_days{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = fld(int64(dt)+getoffset(T,dt),86400)
+year(dt::DateTimeDate) = _year(_days(dt))
+month(dt::DateTimeDate) = _month(_days(dt))
+week(dt::DateTimeDate) = _week(_days(dt))
+day(dt::DateTimeDate) = _day(_days(dt))
+hour{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = fld((int64(dt))+getoffset(T,dt),3600) % 24
+minute{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = fld((int64(dt)+getoffset(T,dt)) % 3600, 60)
+second{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = (s = ((int64(dt)+getoffset_secs(T,dt)) % 60); return !USELEAPSECONDS ? s : s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
+calendar{C<:Calendar}(dt::Date{C}) = C
+typemax{D<:Date}(::Type{D}) = date(100000000000000,12,31)
+typemin{D<:Date}(::Type{D}) = date(-100000000000000,1,1)
+isdate(n) = typeof(n) <: Date
+calendar{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = C
+timezone{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = T
+typemin{D<:DateTime}(::Type{D}) = datetime(-100000000000,1,1,0,0,0)
+typemax{D<:DateTime}(::Type{D}) = datetime(100000000000,12,31,23,59,59)
+isdatetime(x) = typeof(x) <: DateTime
+#Functions to work with timezones
+convert{C<:Calendar,T<:TimeZone,TT<:TimeZone}(::Type{DateTime{C,T}},x::DateTime{C,TT}) = convert(DateTime{C,TT},int64(x))
+timezone{C<:Calendar,T<:TimeZone,TT<:TimeZone}(dt::DateTime{C,T},tz::Type{TT}) = convert(DateTime{C,TT},int64(dt))
+timezone(x::String) = get(TIMEZONES,x,Zone0)
+timezone(dt::DateTime,tz::String) = timezone(dt,timezone(tz))
+
+#String/print/show
+function string(dt::Date)
+	y,m,d = _day2date(_days(dt))
+	y = y == 0 ? "" : @sprintf("%04d",y)
+	m = y == 0 ? @sprintf("%02d",m) : "-" * @sprintf("%02d",m)
+	d = d == 0 ? "" : "-" * @sprintf("%02d",d)
+	return string(y,m,d)
+end
+function string{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})
+    y,m,d = _day2date(_days(dt))
+    h,mi,s = hour(dt),minute(dt),second(dt)
+    yy =  @sprintf("%04d",y)   * "-"
+    m =  @sprintf("%02d",m)   * "-"
+    d =  @sprintf("%02d",d)   * "T"
+    h =  @sprintf("%02d",h)   * ":"
+   mi =  @sprintf("%02d",mi)  * ":" 
+    s =  @sprintf("%02d",s)	  * " " * getabr(T,dt,y)
+    return string(yy,m,d,h,mi,s)
+end
+print(io::IO,x::TimeType) = print(io,string(x))
+show(io::IO,x::TimeType) = print(io,string(x))
+
+#Generic date functions
+isleap(dt::DateTimeDate) = isleap(year(dt))
+lastdayofmonth(dt::DateTimeDate) = lastdayofmonth(year(dt),month(dt))
+dayofweek(dt::DateTimeDate) = (_days(dt) % 7) + 1
+dayofweekinmonth(dt::DateTimeDate) = (d = day(dt); return d < 8 ? 1 : d < 15 ? 2 : d < 22 ? 3 : d < 29 ? 4 : 5)
+function daysofweekinmonth(dt::DateTimeDate)
+	d,ld = day(dt),lastdayofmonth(dt)
+	return ld == 28 ? 4 : ld == 29 ? (contains((1,8,15,22,29),d) ? 5 : 4) :
+		   ld == 30 ? (contains((1,2,8,9,15,16,22,23,29,30),d) ? 5 : 4) :
+		   contains((1,2,3,8,9,10,15,16,17,22,23,24,29,30,31),d) ? 5 : 4
+end
+firstdayofweek{C<:Calendar}(dt::Date{C}) = (d = dayofweek(dt); return convert(Date{C},int64(dt) - d + 1))
+firstdayofweek{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = (d = dayofweek(dt); return convert(DateTime{C,T},int64(dt) - 86400*(d - 1)))
+lastdayofweek{C<:Calendar}(dt::Date{C}) = (d = dayofweek(dt); return convert(Date{C},int64(dt) + (7-d)))
+lastdayofweek{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = (d = dayofweek(dt); return convert(DateTime{C,T},int64(dt) + 86400*(7-d)))
+dayofyear(dt::DateTimeDate) = _days(dt) - totaldays(year(dt),1,1) + 1
+@vectorize_1arg DateTimeDate isleap
+@vectorize_1arg DateTimeDate lastdayofmonth
+@vectorize_1arg DateTimeDate dayofweek
+@vectorize_1arg DateTimeDate dayofweekinmonth
+@vectorize_1arg DateTimeDate daysofweekinmonth
+@vectorize_1arg DateTimeDate firstdayofweek
+@vectorize_1arg DateTimeDate lastdayofweek
+@vectorize_1arg DateTimeDate dayofyear
+
+#TimeType-specific functions (now, unix2datetime, today)
+const UNIXEPOCH = 62135596800 #Rata Die seconds for 1970-01-01T00:00:00 UTC
+unix2datetime{T<:TimeZone}(x::Int64,tz::Type{T}) = convert(DateTime{CALENDAR,tz},UNIXEPOCH + x + (!USELEAPSECONDS ? 0 : leaps(UNIXEPOCH + x)))
+now() = unix2datetime(int64(time()),TIMEZONE)
+now{T<:TimeZone}(tz::Type{T}) = unix2datetime(int64(time()),tz)
+today() = convert(Date{CALENDAR}, _days(int64(time()) + UNIXEPOCH))
+
+#TimeType arithmetic
+(+)(x::TimeType) = x
+(-)(x::Date) = date(-int64(year(x)),month(x),day(x))
+(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T}) = datetime(-year(x),month(x),day(x),hour(x),minute(x),second(x))
+for op in (:+,:*,:/)
+    @eval ($op)(x::DateTimeDate,y::DateTimeDate) = Base.no_op_err($op,"Date/DateTime")
+end
+(-){C<:Calendar}(x::Date{C},y::Date{C}) = days(-(int64(x),int64(y)))
+(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = seconds(-(int64(x),int64(y)))
+(-)(x::DateTimeDate,y::DateTimeDate) = (-)(promote(x,y)...)
+#years
+function (+){C<:Calendar}(dt::Date{C},y::Year{C})
+	oy,m,d = _day2date(_days(dt)); ny = oy+int64(y); ld = lastdayofmonth(ny,m)
+	return date(ny,m,d <= ld ? d : ld,C)
+end
+function (-){C<:Calendar}(dt::Date{C},y::Year{C})
+	oy,m,d = _day2date(_days(dt)); ny = oy-int64(y); ld = lastdayofmonth(ny,m)
+	return date(ny,m,d <= ld ? d : ld,C)
+end
+function (+){C<:Calendar,T<:TimeZone}(dt::DateTime{C,T},y::Year{C})
+	oy,m,d = _day2date(_days(dt)); ny = oy+int64(y); ld = lastdayofmonth(ny,m)
+	return datetime(ny,m,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
+end
+function (-){C<:Calendar,T<:TimeZone}(dt::DateTime{C,T},y::Year{C})
+	oy,m,d = _day2date(_days(dt)); ny = oy-int64(y); ld = lastdayofmonth(ny,m)
+	return datetime(ny,m,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
+end
+#months
+function (+){C<:Calendar}(dt::Date{C},z::Month{C}) 
+	y,m,d = _day2date(_days(dt))
+	ny = addwrap(y,m,int64(z))
+	mm = addwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	return date(ny,mm,d <= ld ? d : ld)
+end
+function (-){C<:Calendar}(dt::Date{C},z::Month{C})
+	y,m,d = _day2date(_days(dt))
+	ny = subwrap(y,m,int64(z))
+	mm = subwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	return date(ny,mm,d <= ld ? d : ld)
+end
+function (+){C<:Calendar,T<:TimeZone}(dt::DateTime{C,T},z::Month{C}) 
+	y,m,d = _day2date(_days(dt))
+	ny = addwrap(y,m,int64(z))
+	mm = addwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	return datetime(ny,mm,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
+end
+function (-){C<:Calendar,T<:TimeZone}(dt::DateTime{C,T},z::Month{C}) 
+	y,m,d = _day2date(_days(dt))
+	ny = subwrap(y,m,int64(z))
+	mm = subwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	return datetime(ny,mm,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
+end
+#weeks,days,hours,minutes,seconds
+(+){C<:Calendar}(x::Date{C},y::Week{C}) = convert(Date{C},(int64(x) + 7y))
+(-){C<:Calendar}(x::Date{C},y::Week{C}) = convert(Date{C},(int64(x) - 7y))
+(+){C<:Calendar}(x::Date{C},y::Day{C})  = convert(Date{C},(int64(x) + y))
+(-){C<:Calendar}(x::Date{C},y::Day{C})  = convert(Date{C},(int64(x) - y))
+(+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)+604800*int64(y))
+(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)-604800*int64(y))
+(+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Day{C}) = convert(DateTime{C,T},int64(x)+86400*int64(y))
+(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Day{C}) = convert(DateTime{C,T},int64(x)-86400*int64(y))
+(+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Hour{C}) = convert(DateTime{C,T},int64(x)+3600*int64(y))
+(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Hour{C}) = convert(DateTime{C,T},int64(x)-3600*int64(y))
+(+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Minute{C}) = convert(DateTime{C,T},int64(x)+60*int64(y))
+(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Minute{C}) = convert(DateTime{C,T},int64(x)-60*int64(y))
+(+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)+int64(y))
+(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)-int64(y))
+(+)(y::Period,x::DateTimeDate) = x + y
+(-)(y::Period,x::DateTimeDate) = x - y
+typealias DateTimePeriod Union(DateTimeDate,Period)
+@vectorize_2arg DateTimePeriod (-)
+@vectorize_2arg DateTimePeriod (+)
+
+#DateRange: for creating fixed period frequencies
+immutable DateRange{C<:Calendar} <: Ranges{Date{C}}
+	start::Date{C}
+	step::DatePeriod
+	len::Int
+end
+#DateRange1: for creating recurring events/dates, takes a function as step which return true for dates to be included
+immutable DateRange1{C<:Calendar} <: Ranges{Date{C}}
+	start::Date{C}
+	step::Function
+	len::Int
+end
+typealias DateRanges Union(DateRange,DateRange1)
+size(r::DateRanges) = (r.len,)
+length(r::DateRanges) = r.len
+step(r::DateRanges)  = r.step
+start(r::DateRanges) = 0
+first(r::DateRanges) = r.start
+done(r::DateRanges, i) = length(r) <= i
+last(r::DateRange) = r.start + convert(typeof(r.step),(r.len-1)*r.step)
+next(r::DateRange, i) = (r.start + convert(typeof(r.step),i*r.step), i+1)
+function show(io::IO,r::DateRanges)
+	print(io, r.start, ':', r.step, ':', last(r))
+end
+colon{C<:Calendar}(t1::Date{C}, y::Year{C}, t2::Date{C}) = DateRange{C}(t1, y, fld(year(t2) - year(t1),y) + 1)
+colon{C<:Calendar}(t1::Date{C}, m::Month{C}, t2::Date{C}) = DateRange{C}(t1, m, fld((year(t2)-year(t1))*12+month(t2)-month(t1),m) + 1)
+colon{C<:Calendar}(t1::Date{C}, w::Week{C}, t2::Date{C}) = DateRange{C}(t1, w, fld(int64(t2)-int64(t1),days(w)) + 1)
+colon{C<:Calendar}(t1::Date{C}, d::Day{C}, t2::Date{C}) = DateRange{C}(t1, d, fld(int64(t2)-int64(t1),d) + 1)
+colon{C<:Calendar}(t1::Date{C}, t2::Date{C}) = DateRange{C}(t1, day(1), fld(int64(t2)-int64(t1),day(1)) + 1)
+(+){C<:Calendar}(r::DateRange{C},p::DatePeriod) = DateRange{C}(r.start+p,r.step,r.len)
+(-){C<:Calendar}(r::DateRange{C},p::DatePeriod) = DateRange{C}(r.start-p,r.step,r.len)
+function last(r::DateRange1)
+	t = r.start
+	len = 0
+	while true
+		r.step(t) && (len += 1)
+		len == r.len && break
+		t += day(1)
+	end
+	return t
+end
+function next(r::DateRange1, i)
+	t = r.start
+	len = 0
+	while true
+		r.step(t) && (len += 1)
+		len == i+1 && break
+		t += day(1)
+	end
+	return (t,i+1)
+end
+function colon{C<:Calendar}(t1::Date{C},fun::Function,t2::Date{C})
+	len = 0
+	t = d1 = t1
+	while t < t2
+		if fun(t) 
+			len += 1
+			len == 1 && (d1 = t)
+		end
+		t += day(1)
+	end
+	return DateRange1{C}(d1, fun, len)
+end
+(+){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start+p,r.step,r.len)
+(-){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start-p,r.step,r.len)
+recur{C<:Calendar}(fun::Function,di::DateRange{C}) = colon(di.start,fun,last(di))
+const Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday = 1,2,3,4,5,6,7
+const January,February,March,April,May,June,July,August,September,October,November,December = 1,2,3,4,5,6,7,8,9,10,11,12
+
+immutable DateTimeRange{C<:Calendar,T<:TimeZone} <: Ranges{DateTime{C,T}}
+	start::DateTime{C,T}
+	step::Period
+	len::Int
+end
+size(r::DateTimeRange) = (r.len,)
+length(r::DateTimeRange) = r.len
+step(r::DateTimeRange)  = r.step
+start(r::DateTimeRange) = 0
+first(r::DateTimeRange) = r.start
+last(r::DateTimeRange) = r.start + convert(typeof(r.step),(r.len-1)*r.step)
+next(r::DateTimeRange, i) = (r.start + convert(typeof(r.step),i*r.step), i+1)
+done(r::DateTimeRange, i) = length(r) <= i
+function show{C<:Calendar}(io::IO,r::DateTimeRange{C})
+	print(io, r.start, ':', r.step, ':', last(r))
+end
+colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, y::Year{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, y, fld(year(t2) - year(t1),y) + 1)
+colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, m::Month{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, m, fld((year(t2)-year(t1))*12+month(t2)-month(t1),m) + 1)
+colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, w::Week{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, w, fld(_days(t2)-_days(t1),7w)+1)
+colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, d::Day{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, d, fld(_days(t2)-_days(t1),d)+1)
+colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, h::Hour{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, h, fld(fld(int64(t2),3600)-fld(int64(t1),3600),h)+1)
+colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, mi::Minute{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, mi, fld(fld(int64(t2),60)-fld(int64(t1),60),mi)+1)
+colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, s::Second{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, s, fld(int64(t2)-int64(t1),s)+1)
+(+){C<:Calendar,T<:TimeZone}(r::DateTimeRange{C,T},p::DatePeriod) = DateTimeRange{C,T}(r.start+p,r.step,r.len)
+(-){C<:Calendar,T<:TimeZone}(r::DateTimeRange{C,T},p::DatePeriod) = DateTimeRange{C,T}(r.start-p,r.step,r.len)
+
+#Period types
 convert{P<:Period}(::Type{P},x::Int32) = Base.box(P,Base.unbox(Int32,x))
 convert{P<:Period}(::Type{Int32},x::P) = Base.box(Int32,Base.unbox(P,x))
 convert{P<:Period}(::Type{P},x::Real) = convert(P,int32(x))
@@ -52,7 +386,6 @@ convert{R<:Real}(::Type{R},x::Period) = convert(R,int32(x))
 for period in (Year,Month,Week,Day,Hour,Minute,Second)
 	@eval convert(::Type{$period},x::Int32) = convert($period{CALENDAR},int32(x))
 end
-convert{P<:Period}(::Type{P},x::P) = x
 promote_rule{P<:Period,R<:Real}(::Type{P},::Type{R}) = R
 promote_rule{A<:Period,B<:Period}(::Type{A},::Type{B}) =
 	A == Second{CALENDAR} || B == Second{CALENDAR} ? Second{CALENDAR} :
@@ -86,9 +419,10 @@ hours   = (hour(x::PeriodMath)    = convert(Hour{CALENDAR},x))
 minutes = (minute(x::PeriodMath)  = convert(Minute{CALENDAR},x))
 seconds = (second(x::PeriodMath)  = convert(Second{CALENDAR},x))
 #Print/show/traits
-print(io::IO,x::Period) = print(io,int32(x))
-show(io::IO,x::Period) = print(io,int32(x))
-string(x::Period) = string(int32(x))
+_units(x::Period) = " " * lowercase(string(typeof(x).name)) * (x == 1 ? "" : "s")
+print(io::IO,x::Period) = print(io,int32(x),_units(x))
+show(io::IO,x::Period) = print(io,x)
+string(x::Period) = string(int32(x),_units(x))
 typemin{P<:Period}(::Type{P}) = convert(P,typemin(Int32))
 typemax{P<:Period}(::Type{P}) = convert(P,typemax(Int32))
 zero{P<:Period}(::Union(Type{P},P)) = convert(P,int32(0))
@@ -113,329 +447,5 @@ addwrap(x::Int64,y::Int64) = (v = (x + y)      % 12; return v == 0 ? 12 : v)
 subwrap(x::Int64,y::Int64) = (v = (x - y + 12) % 12; return v == 0 ? 12 : v)
 addwrap(x::Int64,y::Int64,z::Int64) = x + (y + z > 12 ? max(1, fld(z,12)) : 0)
 subwrap(x::Int64,y::Int64,z::Int64) = x - (y - z < 1  ? max(1, fld(z,12)) : 0)
-
-#Date bitstype parameterized by Calendar; timezone independent (no hours,minutes,seconds)
-bitstype 64 Date{C <: Calendar}	<: TimeType
-
-#bits functions
-convert{C<:Calendar}(::Type{Date{C}},x::Int64) = Base.box(Date{C},Base.unbox(Int64,x))
-convert{C<:Calendar}(::Type{Int64},x::Date{C}) = Base.box(Int64,Base.unbox(Date{C},x))
-convert{C<:Calendar}(::Type{Date{C}},x::Real) = convert(Date{C},int64(x))
-convert{C<:Calendar,R<:Real}(::Type{R}, x::Date{C}) = convert(R,int64(x))
-convert(::Type{Date},x::Real) = convert(Date{CALENDAR},int64(x))
-promote_rule{C<:Calendar,R<:Real}(::Type{Date{C}},::Type{R}) = R
-isless{C<:Calendar}(x::Date{C},y::Date{C}) = isless(int64(x),int64(y))
-isequal{C<:Calendar}(x::Date{C},y::Date{C}) = isequal(int64(x),int64(y))
-#Internal constructor
-_date{C<:Calendar}(x::Int64,::Type{C}=CALENDAR) = convert(Date{C},x)
-#ISO-compliant constructor
-const DAYSINMONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
-lastday(y::Int64,m::Int64) = DAYSINMONTH[m] + (m == 2 && (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)))
-_yeardays(y::Int64) = 365y + fld(y,4) - fld(y,100) + fld(y,400)
-const MONTHDAYS = [306, 337, 0, 31, 61, 92, 122, 153, 184, 214, 245, 275]
-_daynumbers(y::Int64,m::Int64,d::Int64) = d + MONTHDAYS[m] + _yeardays(m<3 ? y-1 : y) - 307
-date(y::Int64,m::Int64,d::Int64,cal::Type{ISOCalendar}=ISOCalendar) = _date(_daynumbers(y,m,d),cal)
-#Default constructor
-date(y::DateMath=1,m::DateMath=1,d::DateMath=1,cal=CALENDAR) = date(int64(y),int64(m),int64(d),cal)
-#date(s::String)? ymd family?
-
-function _year(dt::Int64)
-	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
-	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
-	m = div(5c+456,153); return m > 12 ? y+1 : y	
-end
-function _month(dt::Int64)
-	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
-	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
-	m = div(5c+456,153); return m > 12 ? m-12 : m
-end
-function _week(dt::Int64)
-	w = fld(dt,7) % 20871 #20871 = # of weeks in 400 years
-	c = fld((w + (w >= 10435)),5218) #need # of centuries to choose right intercept below
-	w = (w + (w >= 10435)) % 5218 #5218 = # of weeks in century
-	w = (w*28+(15,23,3,11)[c+1]) % 1461
-	return fld(w,28) + 1
-end
-function _day(dt::Int64)
-	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
-	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
-	m = div(5c+456,153); d = c - div(153m-457,5); return d
-end
-function _day2date(dt::Date)
-	z = int64(dt) + 307; h = 100z - 25;	a = fld(h,3652425)
-	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
-	m = div(5c+456,153); d = c - div(153m-457,5); return m > 12 ? (y+1,m-12,d) : (y,m,d)
-end
-year(dt::Date) = _year(int64(dt))
-month(dt::Date) = _month(int64(dt))
-day(dt::Date) = _day(int64(dt))
-#Print/show/traits; add + for years > 4 digits = ISO standard
-function string(dt::Date)
-	y,m,d = _day2date(dt)
-	y = y == 0 ? "" : @sprintf("%04d",y)
-	m = y == 0 ? @sprintf("%02d",m) : "-" * @sprintf("%02d",m)
-	d = d == 0 ? "" : "-" * @sprintf("%02d",d)
-	return string(y,m,d)
-end
-print(dt::Date) = print(string(dt))
-show(io::IO,dt::Date) = print(io,string(dt))
-#format()
-typemax{C<:Calendar}(::Type{Date{C}}) = date(100000000000000,12,31)
-typemin{C<:Calendar}(::Type{Date{C}}) = date(-100000000000000,1,1)
-hash(dt::Date) = hash(int64(dt))
-length(::Date) = 1
-isdate(n) = typeof(n) <: Date
-calendar{C<:Calendar}(dt::Date{C}) = C
-
-#ISO implementation of generic date functions
-#Most are generic, but the _day2date algorithm comes from Peter Baum
-#http://mysite.verizon.net/aesir_research/date/date0.htm
-#Based on the ISO standard, which uses the proleptic Gregorian calendar
-#which is the normal one everyone thinks of applied retroactively
-#(though it was officially accepted in 1582 when they had to fast-forward 11 days)
-isleap(dt::Date) = (y = year(dt); (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)))
-lastday(dt::Date) = lastday(year(dt),month(dt))
-dayofweek(dt::Date) = int64(dt) % 7 + 1
-#dayofweekinmonth(dt::Date) = 
-#firstdayofweek
-#lastdayofweek
-dayofyear(dt::Date) = int64(dt) - _daynumbers(year(dt),1,1) + 1
-week(dt::Date) = _week(int64(dt))
-@vectorize_1arg Date isleap
-@vectorize_1arg Date lastday
-@vectorize_1arg Date dayofweek
-#@vectorize_1arg Date dayofweekofmonth
-@vectorize_1arg Date dayofyear
-@vectorize_1arg Date week
-
-#Date-Date operations: +, *, and / are meaningless; (-) return duration in days
-(-){C<:Calendar}(x::Date{C},y::Date{C}) = days(-(int64(x),int64(y)))
-(+)(x::Date) = x
-(-)(x::Date) = date(-int64(year(x)),month(x),day(x))
-for op in (:+,:*,:/)
-    @eval ($op)(x::Date,y::Date) = Base.no_op_err($op,"Date")
-end
-for op in (:*,:/,:<,:>), period in (Hour,Minute,Second)
-	@eval ($op)(x::Date,y::$period) = Base.no_op_err($op,"Date-$period")
-end
-function (+){C<:Calendar}(dt::Date{C},y::Year{C})
-	oy,m,d = _day2date(dt); ny = oy+int64(y); ld = lastday(ny,m)
-	return date(ny,m,d <= ld ? d : ld,C)
-end
-(+){C<:Calendar}(y::Year{C},x::Date{C}) = +(x,y)
-function (-){C<:Calendar}(dt::Date{C},y::Year{C})
-	oy,m,d = _day2date(dt); ny = oy-int64(y); ld = lastday(ny,m)
-	return date(ny,m,d <= ld ? d : ld,C)
-end
-(-){C<:Calendar}(y::Year{C},x::Date{C}) = -(x,y)
-function (+){C<:Calendar}(dt::Date{C},z::Month{C}) 
-	y,m,d = _day2date(dt)
-	ny = addwrap(y,m,int64(z))
-	mm = addwrap(m,int64(z)); ld = lastday(ny,mm)
-	return date(ny,mm,d <= ld ? d : ld)
-end
-(+){C<:Calendar}(y::Month{C},x::Date{C}) = x + y
-function (-){C<:Calendar}(dt::Date{C},z::Month{C})
-	y,m,d = _day2date(dt)
-	ny = subwrap(y,m,int64(z))
-	mm = subwrap(m,int64(z)); ld = lastday(ny,mm)
-	return date(ny,mm,d <= ld ? d : ld)
-end
-(-){C<:Calendar}(y::Month{C},x::Date{C}) = x - y
-(+){C<:Calendar}(x::Date{C},y::Week{C}) = _date(int64(x) + 7y,C)
-(+){C<:Calendar}(y::Week{C},x::Date{C}) = x + y
-(-){C<:Calendar}(x::Date{C},y::Week{C}) = _date(int64(x) - 7y,C)
-(-){C<:Calendar}(y::Week{C},x::Date{C}) = x - y
-(+){C<:Calendar}(x::Date{C},y::Day{C})  = _date(int64(x) + y,C)
-(+){C<:Calendar}(y::Day{C},x::Date{C})  = x + y
-(-){C<:Calendar}(x::Date{C},y::Day{C})  = _date(int64(x) - y,C)
-(-){C<:Calendar}(y::Day{C},x::Date{C})  = x - y
-
-typealias DatePeriodDate Union(DatePeriod,Date)
-@vectorize_2arg DatePeriodDate (-)
-@vectorize_2arg DatePeriodDate (+)
-
-#Date ranges: start date, end date, period as step; for creating frequencies
-# immutable DateRange1{C<:Calendar} <: Ranges{Date{C}}
-# 	start::Date{C}
-# 	step::DatePeriod
-# 	len::Int
-# end
-# size(r::DateRange1) = (r.len,)
-# length(r::DateRange1) = r.len
-# step(r::DateRange1)  = r.step
-# start(r::DateRange1) = 0
-# first(r::DateRange1) = r.start
-# last(r::DateRange1) = r.start + convert(typeof(r.step),(r.len-1)*r.step)
-# next(r::DateRange1, i) = (r.start + convert(typeof(r.step),i*r.step), i+1)
-# done(r::DateRange1, i) = length(r) <= i
-# _units(x::Period) = lowercase(string(typeof(x).name)) * "s($(string(x)))"
-# function show{C<:Calendar}(io::IO,r::DateRange1{C})
-# 	print(io, r.start, ':', _units(r.step), ':', last(r))
-# end
-# colon{C<:Calendar}(t1::Date{C}, y::Year{C}, t2::Date{C}) = DateRange1{C}(t1, y, int(fld((t2.year - t1.year),y) + 1) )
-# colon{C<:Calendar}(t1::Date{C}, m::Month{C}, t2::Date{C}) = DateRange1{C}(t1, m, int(fld(int(t2.year-t1.year)*12+int(t2.month-t1.month),m) + 1) )
-# colon{C<:Calendar}(t1::Date{C}, w::Week{C}, t2::Date{C}) = DateRange1{C}(t1, w, int(fld(_daynumbers(t2)-_daynumbers(t1),days(w)) + 1) )
-# colon{C<:Calendar}(t1::Date{C}, d::Day{C}, t2::Date{C}) = DateRange1{C}(t1, d, int(fld(_daynumbers(t2)-_daynumbers(t1),d) + 1) )
-# (+){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start+p,r.step,r.len)
-# (-){C<:Calendar}(r::DateRange1{C},p::DatePeriod) = DateRange1{C}(r.start-p,r.step,r.len)
-
-#DateTime type
-bitstype 64 DateTime{C <: Calendar,T <: TimeZone} <: TimeType
-typealias DateTimeMath Union(DateTime,Real)
-typealias DateTimeDate Union(DateTime,Date)
-
-#bits functions
-convert{C<:Calendar,T<:TimeZone}(::Type{DateTime{C,T}},x::Int64) = Base.box(DateTime{C,T},Base.unbox(Int64,x))
-convert{C<:Calendar,T<:TimeZone}(::Type{Int64},x::DateTime{C,T}) = Base.box(Int64,Base.unbox(DateTime{C,T},x))
-convert{C<:Calendar,T<:TimeZone,R<:Real}(::Type{R}, x::DateTime{C,T}) = convert(R,int64(x))
-convert(::Type{DateTime},x::Int64) = convert(DateTime{CALENDAR,TIMEZONE},x)
-convert{C<:Calendar}(::Type{DateTime},d::Date{C}) = datetime(year(d),month(d),day(d),0,0,0,TIMEZONE)
-convert{C<:Calendar,T<:TimeZone}(::Type{Date{C}},d::DateTime{C,T}) = date(year(d),month(d),day(d))
-promote_rule{C<:Calendar,T<:TimeZone,R<:Real}(::Type{DateTime{C,T}},::Type{R}) = R
-promote_rule{C<:Calendar,T<:TimeZone,TT<:TimeZone}(::Type{DateTime{C,T}},::Type{DateTime{C,TT}}) = DateTime{C,Zone0} #does this work?
-convert{C<:Calendar,T<:TimeZone,TT<:TimeZone}(::Type{DateTime{C,T}},x::DateTime{C,TT}) = _datetime(int64(x),C,T)
-promote_rule{C<:Calendar,T<:TimeZone}(::Type{DateTime{C,T}},::Type{Date{C}}) = Date{C}
-isless{C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = isless(int64(x),int64(y))
-isequal{C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = isequal(int64(x),int64(y))
-isless(x::DateTime,y::Real) = isless(int64(x),int64(y))
-isless(x::Real,y::DateTime) = isless(int64(x),int64(y))
-(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DateTime{C,T}) = seconds(-(int64(x),int64(y)))
-(+)(x::DateTime) = x
-(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T}) = datetime(-year(x),month(x),day(x),hour(x),minute(x),second(x),T)
-for op in (:+,:*,:/)
-    @eval ($op)(x::DateTime,y::DateTime) = Base.no_op_err($op,"DateTime")
-    @eval ($op)(x::DateTimeDate,y::DateTimeDate) = Base.no_op_err($op,"DateTime-Date")
-end
-isequal(x::DateTime,y::Real) = isequal(promote(x,y)...)
-isequal(x::Real,y::DateTime) = isequal(promote(x,y)...)
-for op in (:-,:isless,:isequal)
-	@eval ($op){C<:Calendar,T<:TimeZone,TT<:TimeZone}(x::DateTime{C,T},y::DateTime{C,TT}) = ($op)(promote(x,y)...)
-    @eval ($op)(x::DateTimeDate,y::DateTimeDate) = ($op)(promote(x,y)...)
-end
-(+){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DatePeriod) = convert(Date{C},x) + y
-(+){C<:Calendar,T<:TimeZone}(y::DatePeriod,x::DateTime{C,T}) = convert(Date{C},x) + y
-(-){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::DatePeriod) = convert(Date{C},x) - y
-(-){C<:Calendar,T<:TimeZone}(y::DatePeriod,x::DateTime{C,T}) = convert(Date{C},x) - y
-#default internal constructor
-_datetime{C<:Calendar,T<:TimeZone}(x::Int64,::Type{C}=CALENDAR,::Type{T}=TIMEZONE) = convert(DateTime{C,T},x)
-timezone{C<:Calendar,T<:TimeZone,TT<:TimeZone}(dt::DateTime{C,T},tz::Type{TT}) = _datetime(int64(dt),C,TT)
-timezone{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T},tz::String) = timezone(dt,timezone(tz))
-#ISO-compliant constructor; internal, overloaded for different Calendars
-const _leaps = [62214393599,62230291199,62261827199,62293363199,62324899199,62356521599,62388057599,62419593599,62451129599,62498390399,62529926399,62561462399,62624620799,62703590399,62766748799,62798284799,62845545599,62877081599,62908617599,62956051199,63003311999,63050745599,63271670399,63366364799,63476697599,9223372036854775807]
-const _leaps1 = [62214393600,62230291201,62261827202,62293363203,62324899204,62356521605,62388057606,62419593607,62451129608,62498390409,62529926410,62561462411,62624620812,62703590413,62766748814,62798284815,62845545616,62877081617,62908617618,62956051219,63003312020,63050745621,63271670422,63366364823,63476697624,9223372036854775807]
-leaps(secs::DateTimeMath)  = (i = 1; while true; @inbounds (_leaps[i]  >= secs && break); i+=1 end; return i-1)
-leaps1(secs::DateTimeMath) = (i = 1; while true; @inbounds (_leaps1[i] >= secs && break); i+=1 end; return i-1)
-function datetime{T<:TimeZone}(y::Int64,m::Int64,d::Int64,h::Int64,mi::Int64,s::Int64,tz::Type{T}=TIMEZONE)
-    secs = s + 60mi + 3600h + 86400*_daynumbers(y,m,d)
-    secs -= 1902 < y < 2038 ? setoffset(T,secs) : get(OFFSETS,T,0)
-    secs += y < 1972 ? 0 : s == 60 ? leaps1(secs) : leaps(secs)
-    return _datetime(secs,CALENDAR,tz) #represents Rata Die seconds since 0001/1/1:00:00:00 + any elapsed leap seconds
-end
-datetime{T<:TimeZone}(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::Type{T}) = datetime(y,m,d,h,mi,s,tz)
-datetime(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath) = datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),TIMEZONE)
-datetime(y::PeriodMath,m::PeriodMath,d::PeriodMath,h::PeriodMath,mi::PeriodMath,s::PeriodMath,tz::String) = datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),timezone(tz))
-datetime{C<:Calendar}(d::Date{C}) = datetime(year(d),month(d),day(d),0,0,0,TIMEZONE)
-date(x::DateTime) = date(year(x),month(x),day(x))
-unix2datetime{T<:TimeZone}(x::Int64,tz::Type{T}=TIMEZONE) = (s = UNIXEPOCH + x; _datetime(s + leaps(s),CALENDAR,tz))
-@vectorize_1arg Real unix2datetime
-now() = unix2datetime(int64(time()))
-now{T<:TimeZone}(tz::Type{T}) = unix2datetime(int64(time()),tz)
-# datetime{C<:Calendar,T<:TimeZone}(d::Date{C},t::Time{T}) = datetime(d.year,d.month,d.day,t.hour,t.minute,t.second,C,T)
-#Accessors/Traits/Print/Show
-function string{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})
-    y,m,d,h,mi,s = year(dt),month(dt),day(dt),hour(dt),minute(dt),second(dt)
-    tz = 1902 < y < 2038 ? getabr(T,dt) : get(ABBREVIATIONS,T,"UTC")
-    y =  @sprintf("%04d",int(y))   * "-"
-    m =  @sprintf("%02d",int(m))   * "-"
-    d =  @sprintf("%02d",int(d))   * "T"
-    h =  @sprintf("%02d",int(h))   * ":"
-   mi =  @sprintf("%02d",int(mi))  * ":"
-    s =  @sprintf("%02d",int(s))   * " " * tz
-    return string(y,m,d,h,mi,s)
-end
-print{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = print(string(dt))
-show{C<:Calendar,T<:TimeZone}(io::IO,dt::DateTime{C,T}) = print(io,string(dt))
-typemin(::Type{DateTime}) = datetime(-100000000000,1,1,0,0,0)
-typemax(::Type{DateTime}) = datetime(100000000000,12,31,23,59,59)
-hash(dt::DateTime) = hash(int64(dt))
-length(::DateTime) = 1
-isdatetime(n) = typeof(n) <: DateTime
-calendar{C<:Calendar}(dt::DateTime{C}) = C
-timezone{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = (y = year(dt); 1902 < y < 2038 ? getabr(T,dt) : get(ABBREVIATIONS,T,"UTC"))
-
-#Accessor/generics
-year{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = _year(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
-month{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})    = _month(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
-day{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})      = _day(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
-hour{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})     = fld((int64(dt)-leaps(dt)+getoffset(T,dt)),3600) % 24
-minute{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = fld((int64(dt)-leaps(dt)+getoffset(T,dt)) % 3600, 60)
-second{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T})   = (s = ((int64(dt)-leaps1(dt)+getoffset(T,dt)) % 60); return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
-calendar{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = C
-timezone{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = T
-isleap(dt::DateTime)     = (y = year(dt); (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)))
-lastday(dt::DateTime)    = lastday(year(dt),month(dt))
-dayofweek(dt::DateTime)  = (fld(int64(dt),86400) + 1) % 7
-dayofyear(dt::DateTime)  = fld(int64(dt)-_yearsecs(year(dt)),86400)+1
-week{C<:Calendar,T<:TimeZone}(dt::DateTime{C,T}) = _week(fld(int64(dt)-leaps(dt)+getoffset(T,dt),86400))
-@vectorize_1arg DateTime isleap
-@vectorize_1arg DateTime lastday
-@vectorize_1arg DateTime dayofweek
-@vectorize_1arg DateTime dayofyear
-@vectorize_1arg DateTime week
-
-#DateTime-Period arithmetic: <<, >>
-(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = convert(DateTime{C,T},int64(x)+31536000y)
-(>>){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = x >> y
-(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Year{C}) = convert(DateTime{C,T},int64(x)-31536000y)
-(<<){C<:Calendar,T<:TimeZone}(y::Year{C},x::DateTime{C,T}) = x << y
-(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)+31536000y)
-(>>){C<:Calendar,T<:TimeZone}(y::Week{C},x::DateTime{C,T}) = x >> y
-(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Week{C}) = convert(DateTime{C,T},int64(x)-31536000y)
-(<<){C<:Calendar,T<:TimeZone}(y::Week{C},x::DateTime{C,T}) = x << y
-(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Day{C}) = convert(DateTime{C,T},int64(x)+86400y)
-(>>){C<:Calendar,T<:TimeZone}(y::Day{C},x::DateTime{C,T}) = x >> y
-(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Day{C}) = convert(DateTime{C,T},int64(x)-86400y)
-(<<){C<:Calendar,T<:TimeZone}(y::Day{C},x::DateTime{C,T}) = x << y
-(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Hour{C}) = convert(DateTime{C,T},int64(x)+3600y)
-(>>){C<:Calendar,T<:TimeZone}(y::Hour{C},x::DateTime{C,T}) = x >> y
-(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Hour{C}) = convert(DateTime{C,T},int64(x)-3600y)
-(<<){C<:Calendar,T<:TimeZone}(y::Hour{C},x::DateTime{C,T}) = x << y
-(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Minute{C}) = convert(DateTime{C,T},int64(x)+60y)
-(>>){C<:Calendar,T<:TimeZone}(y::Minute{C},x::DateTime{C,T}) = x >> y
-(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Minute{C}) = convert(DateTime{C,T},int64(x)-60y)
-(<<){C<:Calendar,T<:TimeZone}(y::Minute{C},x::DateTime{C,T}) = x << y
-(>>){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)+y)
-(>>){C<:Calendar,T<:TimeZone}(y::Second{C},x::DateTime{C,T}) = x >> y
-(<<){C<:Calendar,T<:TimeZone}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)-y)
-(<<){C<:Calendar,T<:TimeZone}(y::Second{C},x::DateTime{C,T}) = x << y
-typealias DateTimePeriodDate Union(Period,Date)
-@vectorize_2arg DateTimePeriodDate (<<)
-@vectorize_2arg DateTimePeriodDate (>>)
-
-# #Date ranges: start date, end date, period as step; for creating frequencies
-# immutable DateTimeRange1{C<:Calendar,T<:TimeZone} <: Ranges{DateTime{C,T}}
-# 	start::DateTime{C,T}
-# 	step::Period
-# 	len::Int
-# end
-# size(r::DateTimeRange1) = (r.len,)
-# length(r::DateTimeRange1) = r.len
-# step(r::DateTimeRange1)  = r.step
-# start(r::DateTimeRange1) = 0
-# first(r::DateTimeRange1) = r.start
-# last(r::DateTimeRange1) = r.start >> convert(typeof(r.step),(r.len-1)*r.step)
-# next(r::DateTimeRange1, i) = (r.start >> convert(typeof(r.step),i*r.step), i+1)
-# done(r::DateTimeRange1, i) = length(r) <= i
-# _units(x::Period) = lowercase(string(typeof(x).name)) * "s($(string(x)))"
-# function show{C<:Calendar,T<:TimeZone}(io::IO,r::DateTimeRange1{C,T})
-# 	print(io, r.start, ':', _units(r.step), ':', last(r))
-# end
-# colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, y::Year{C}, t2::DateTime{C,T}) = DateTimeRange1{C,T}(t1, y, int(fld((year(t2) - year(t1)),y) + 1) )
-# colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, m::Month{C}, t2::DateTime{C,T}) = DateTimeRange1{C,T}(t1, m, int(fld(int(year(t2) - year(t1))*12+int(month(t2)-month(t1)),m) + 1) )
-# # colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, w::Week{C}, t2::DateTime{C,T}) = DateTimeRange1{C,T}(t1, w, int(fld(_daynumbers(t2)-_daynumbers(t1),days(w)) + 1) )
-# # colon{C<:Calendar,T<:TimeZone}(t1::DateTime{C,T}, d::Day{C}, t2::DateTime{C,T}) = DateTimeRange1{C,T}(t1, d, int(fld(_daynumbers(t2)-_daynumbers(t1),d) + 1) )
-# (+){C<:Calendar,T<:TimeZone}(r::DateTimeRange1{C,T},p::Period) = DateTimeRange1{C,T}(r.start+p,r.step,r.len)
-# (-){C<:Calendar,T<:TimeZone}(r::DateTimeRange1{C,T},p::Period) = DateTimeRange1{C,T}(r.start-p,r.step,r.len)
 
 end #module
