@@ -175,7 +175,7 @@ end
 push!(perf,"Create Date")
 push!(timing,test())
 push!(baseline,0.01)
-function test()
+function test() ####
 	tic()
 	dt = date(2013,7,8)
 	for i = 1:1000000
@@ -186,7 +186,7 @@ end
 push!(perf,"dayofyear Date")
 push!(timing,test())
 push!(baseline,0.03)
-function test()
+function test() ####
 	tic()
 	dt = date(2013,7,8)
 	for i = 1:1000000
@@ -197,7 +197,7 @@ end
 push!(perf,"dayofweek Date")
 push!(timing,test())
 push!(baseline,0.0003)
-function test()
+function test() #####
 	tic()
 	dt = date(2013,7,8)
 	for i = 1:1000000
