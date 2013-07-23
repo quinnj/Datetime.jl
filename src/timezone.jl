@@ -59,7 +59,7 @@ const DATAFILES = (DataType=>Symbol)[Zone1=>:Zone1DATA  ,Zone2=>:Zone2DATA  ,Zon
 const FILEPATH = Base.dirname(Base.source_path())
 function setoffset{T<:TimeZone}(tz::Type{T},secs,y,s)
 	secs1 = secs - (1902 < y < 2038 ? _setoffset(tz,secs) : get(OFFSETS,tz,0))
-    secs1 += y < 1972 ? 0 : !USELEAPSECONDS ? 0 : s == 60 ? leaps1(secs1) : leaps(secs1)
+    secs1 += y < 1972 ? 0 : s == 60 ? leaps1(secs1) : leaps(secs1)
     return secs - secs1
 end
 function _setoffset{T<:TimeZone}(tz::Type{T},secs)
@@ -104,8 +104,7 @@ function getoffset{T<:TimeZone}(tz::Type{T},secs)
 		tzdata = eval(sym)
 	end
 	(secs < tzdata[1,2] || secs > tzdata[end,2]) && return get(OFFSETS,tz,0)
-	off = _findfirst1(tzdata,int64(secs),3)
-	off -= (!USELEAPSECONDS ? 0 : leaps(secs))
+	off = _findfirst1(tzdata,int64(secs),3) - leaps(secs)
 	return off
 end
 function getoffset_secs{T<:TimeZone}(tz::Type{T},secs)
@@ -119,8 +118,7 @@ function getoffset_secs{T<:TimeZone}(tz::Type{T},secs)
 		tzdata = eval(sym)
 	end
 	(secs < tzdata[1,2] || secs > tzdata[end,2]) && return get(OFFSETS,tz,0)
-	off = _findfirst1(tzdata,int64(secs),3)
-	off -= (!USELEAPSECONDS ? 0 : leaps1(secs))
+	off = _findfirst1(tzdata,int64(secs),3) - leaps1(secs)
 	return off
 end
 function _findfirst1(tzdata,secs,col)

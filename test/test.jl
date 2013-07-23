@@ -187,7 +187,7 @@ Base.Test.@test isleap(dt) == false
 Base.Test.@test week(dt) == 27
 Base.Test.@test dayofyear(dt) == 182
 Base.Test.@test dayofweek(dt) == 1
-Base.Test.@test int64(dt) == 63508233625
+Base.Test.@test int64(dt) == 63508233625000000
 dt = datetime(2012,2,29)
 dt2 = datetime(2000,2,1)
 Base.Test.@test dt > dt2
@@ -200,24 +200,24 @@ Base.Test.@test +dt == dt
 #Leap second support
 q = datetime(1972,6,30,23,59,58)
 t = datetime(1972,6,30,23,59,59)
-Base.Test.@test t - q == 1
+Base.Test.@test t - q == 1000000
 Base.Test.@test t == t
 r = datetime(1972,7,1,0,0,0)
-Base.Test.@test r - t == 2 #Includes leap second
+Base.Test.@test r - t == 2000000 #Includes leap second
 n = datetime(1972,6,30,23,59,60)
-Base.Test.@test n - t == 1
-Base.Test.@test r - n == 1
+Base.Test.@test n - t == 1000000
+Base.Test.@test r - n == 1000000
 a = datetime(1972,12,31,23,59,59)
 b = datetime(1972,12,31,23,59,60)
 c = datetime(1973,1,1,0,0,0)
 d = datetime(1973,1,1,0,0,1)
-Base.Test.@test c - b == 1
-Base.Test.@test b - a == 1
+Base.Test.@test c - b == 1000000
+Base.Test.@test b - a == 1000000
 a = datetime(1982,6,30,23,59,59)
 b = datetime(1982,6,30,23,59,60)
 c = datetime(1982,7,1,0,0,0)
-Base.Test.@test c - b == 1
-Base.Test.@test b - a == 1
+Base.Test.@test c - b == 1000000
+Base.Test.@test b - a == 1000000
 dt = datetime(1999,12,27,0,0,0)
 check = (52,52,52,52,52,52,52,1,1,1,1,1,1,1,2,2,2,2,2,2,2)
 for i = 1:21
@@ -246,17 +246,17 @@ q = datetime(1972,6,30,18,59,58,TZ)
 t = datetime(1972,6,30,18,59,59,TZ)
 n = datetime(1972,6,30,18,59,60,TZ)
 r = datetime(1972,6,30,19,0,0,TZ)
-Base.Test.@test t - q == 1
+Base.Test.@test t - q == 1000000
 Base.Test.@test t == t
-Base.Test.@test r - t == 2 #Includes leap second
-Base.Test.@test n - t == 1
-Base.Test.@test r - n == 1
+Base.Test.@test r - t == 2000000 #Includes leap second
+Base.Test.@test n - t == 1000000
+Base.Test.@test r - n == 1000000
 #Daylight savings time
 t1 = datetime(1920,6,13,1,59,59,CST)
 t2 = datetime(1920,6,13,2,0,0,CST)
 t3 = datetime(1920,6,13,3,0,0,CST)
-Base.Test.@test t2 - t1 == 1
-Base.Test.@test t3 - t1 == 1
+Base.Test.@test t2 - t1 == 1000000
+Base.Test.@test t3 - t1 == 1000000
 Base.Test.@test t3 == t2
 Base.Test.@test t1 + second(1) == t2
 Base.Test.@test t1 + second(1) == t3

@@ -38,11 +38,11 @@ function test()
 	tic()
 	dt = datetime(2013,7,8,23,59,59)
 	for i = 1:1000000
-		t = lastday(dt)
+		t = lastdayofmonth(dt)
 	end
 	return toq()
 end
-push!(perf,"lastday DateTime")
+push!(perf,"lastdayofmonth DateTime")
 push!(timing,test())
 push!(baseline,0.62)
 function test()
@@ -83,7 +83,7 @@ function test()
 	t = datetime(2013,7,8,23,59,59)
 	tt = years(1)
 	for i = 1:1000000
-		r = t >> tt
+		r = t + tt
 	end
 	return toq()
 end
@@ -107,7 +107,7 @@ function test()
 	t = datetime(2013,7,8,23,59,59)
 	tt = weeks(1)
 	for i = 1:1000000
-		r = t >> tt
+		r = t + tt
 	end
 	return toq()
 end
@@ -119,7 +119,7 @@ function test()
 	t = datetime(2013,7,8,23,59,59)
 	tt = days(1)
 	for i = 1:1000000
-		r = t >> tt
+		r = t + tt
 	end
 	return toq()
 end
@@ -131,7 +131,7 @@ function test()
 	t = datetime(2013,7,8,23,59,59)
 	tt = hours(1)
 	for i = 1:1000000
-		r = t >> tt
+		r = t + tt
 	end
 	return toq()
 end
@@ -143,7 +143,7 @@ function test()
 	t = datetime(2013,7,8,23,59,59)
 	tt = minutes(1)
 	for i = 1:1000000
-		r = t >> tt
+		r = t + tt
 	end
 	return toq()
 end
@@ -155,7 +155,7 @@ function test()
 	t = datetime(2013,7,8,23,59,59)
 	tt = seconds(1)
 	for i = 1:1000000
-		r = t >> tt
+		r = t + tt
 	end
 	return toq()
 end
