@@ -449,4 +449,26 @@ subwrap(x::Int64,y::Int64) = (v = (x - y + 12) % 12; return v == 0 ? 12 : v)
 addwrap(x::Int64,y::Int64,z::Int64) = x + (y + z > 12 ? max(1, fld(z,12)) : 0)
 subwrap(x::Int64,y::Int64,z::Int64) = x - (y - z < 1  ? max(1, fld(z,12)) : 0)
 
+#DateRange: for creating fixed period frequencies
+immutable PeriodRange{P<:Period} <: Ranges{Period}
+	start::P
+	step::P
+	len::Int
+end
+size(r::PeriodRange) = (r.len,)
+length(r::PeriodRange) = r.len
+step(r::PeriodRange)  = r.step
+start(r::PeriodRange) = 0
+first(r::PeriodRange) = r.start
+done(r::PeriodRange, i) = length(r) <= i
+last(r::PeriodRange) = r.start + convert(typeof(r.step),(r.len-1)*r.step)
+next(r::PeriodRange, i) = (r.start + convert(typeof(r.step),i*r.step), i+1)
+function show(io::IO,r::PeriodRange)
+	print(io, r.start, ':', r.step, ':', last(r))
+end
+colon{P<:Period}(t1::P, s::P, t2::P) = PeriodRange{P}(t1, s, fld(int32(t2)-int32(t1),int32(s)) + int32(1))
+colon{P<:Period}(t1::P, t2::P) = PeriodRange{P}(t1, one(P), int32(t2)-int32(t1) + int32(1))
+(+){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start+p,r.step,r.len)
+(-){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start-p,r.step,r.len)
+
 end #module
