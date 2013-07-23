@@ -2,7 +2,7 @@ module Datetime
 
 importall Base
 
-export Calendar, ISOCalendar, Offsets, TimeZone, CALENDAR, OFFSET,
+export Calendar, ISOCalendar, Offsets, TimeZone, CALENDAR, OFFSET, Period,
 	Date, DateTime, DateRange, DateRange1, DateTimeRange, DateTimeRange1,
     Year, Month, Week, Day, Hour, Minute, Second,
     year, month, week, day, hour, minute, second,
@@ -239,25 +239,29 @@ function (-){C<:Calendar,T<:Offsets}(dt::DateTime{C,T},y::Year{C})
 	return datetime(ny,m,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
 end
 #months
-function (+){C<:Calendar}(dt::Date{C},z::Month{C}) 
+function (+){C<:Calendar}(dt::Date{C},z::Month{C})
+	z < 0 && return dt - -z
 	y,m,d = _day2date(_days(dt))
 	ny = addwrap(y,m,int64(z))
 	mm = addwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
 	return date(ny,mm,d <= ld ? d : ld)
 end
 function (-){C<:Calendar}(dt::Date{C},z::Month{C})
+	z < 0 && return dt + -z
 	y,m,d = _day2date(_days(dt))
 	ny = subwrap(y,m,int64(z))
 	mm = subwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
 	return date(ny,mm,d <= ld ? d : ld)
 end
-function (+){C<:Calendar,T<:Offsets}(dt::DateTime{C,T},z::Month{C}) 
+function (+){C<:Calendar,T<:Offsets}(dt::DateTime{C,T},z::Month{C})
+	z < 0 && return dt - -z
 	y,m,d = _day2date(_days(dt))
 	ny = addwrap(y,m,int64(z))
 	mm = addwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
 	return datetime(ny,mm,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
 end
-function (-){C<:Calendar,T<:Offsets}(dt::DateTime{C,T},z::Month{C}) 
+function (-){C<:Calendar,T<:Offsets}(dt::DateTime{C,T},z::Month{C})
+	z < 0 && return dt + -z
 	y,m,d = _day2date(_days(dt))
 	ny = subwrap(y,m,int64(z))
 	mm = subwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
@@ -280,6 +284,10 @@ end
 (-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)-int64(y))
 (+)(y::Period,x::DateTimeDate) = x + y
 (-)(y::Period,x::DateTimeDate) = x - y
+(+){P<:Period}(x::DateTimeDate,y::Array{P}) = (for i in y; x += i; end; return x)
+(+){P<:Period}(y::Array{P},x::DateTimeDate) = (for i in y; x += i; end; return x)
+(-){P<:Period}(x::DateTimeDate,y::Array{P}) = (x -= y[1]; for i = 2:length(y); x += y[i]; end; return x)
+(-){P<:Period}(y::Array{P},x::DateTimeDate) = (x -= y[1]; for i = 2:length(y); x += y[i]; end; return x)
 typealias DateTimePeriod Union(DateTimeDate,Period)
 @vectorize_2arg DateTimePeriod (-)
 @vectorize_2arg DateTimePeriod (+)
@@ -310,7 +318,7 @@ function show(io::IO,r::DateRanges)
 end
 colon{C<:Calendar}(t1::Date{C}, y::Year{C}, t2::Date{C}) = DateRange{C}(t1, y, fld(year(t2) - year(t1),y) + 1)
 colon{C<:Calendar}(t1::Date{C}, m::Month{C}, t2::Date{C}) = DateRange{C}(t1, m, fld((year(t2)-year(t1))*12+month(t2)-month(t1),m) + 1)
-colon{C<:Calendar}(t1::Date{C}, w::Week{C}, t2::Date{C}) = DateRange{C}(t1, w, fld(int64(t2)-int64(t1),days(w)) + 1)
+colon{C<:Calendar}(t1::Date{C}, w::Week{C}, t2::Date{C}) = DateRange{C}(t1, w, fld(int64(t2)-int64(t1),7w) + 1)
 colon{C<:Calendar}(t1::Date{C}, d::Day{C}, t2::Date{C}) = DateRange{C}(t1, d, fld(int64(t2)-int64(t1),d) + 1)
 colon{C<:Calendar}(t1::Date{C}, t2::Date{C}) = DateRange{C}(t1, day(1), fld(int64(t2)-int64(t1),day(1)) + 1)
 (+){C<:Calendar}(r::DateRange{C},p::DatePeriod) = DateRange{C}(r.start+p,r.step,r.len)
@@ -388,29 +396,6 @@ for period in (Year,Month,Week,Day,Hour,Minute,Second)
 	@eval convert(::Type{$period},x::Int32) = convert($period{CALENDAR},int32(x))
 end
 promote_rule{P<:Period,R<:Real}(::Type{P},::Type{R}) = R
-promote_rule{A<:Period,B<:Period}(::Type{A},::Type{B}) =
-	A == Second{CALENDAR} || B == Second{CALENDAR} ? Second{CALENDAR} :
-    A == Minute{CALENDAR} || B == Minute{CALENDAR} ? Minute{CALENDAR} : 
-    A == Hour{CALENDAR}   || B == Hour{CALENDAR}   ? Hour{CALENDAR}   :
-	A == Day{CALENDAR}    || B == Day{CALENDAR}    ? Day{CALENDAR}    : 
-    A == Week{CALENDAR}   || B == Week{CALENDAR}   ? Week{CALENDAR}   : Month{CALENDAR}
-#conversion rules between periods; ISO/Greg/Julian-specific, but we define as the catchall for all Calendars
-convert{C<:Calendar}(::Type{Month{C}},x::Year{C})    = convert(Month{C},  int32(12x))
-convert{C<:Calendar}(::Type{Week{C}},x::Year{C})     = convert(Week{C},   int32(52x))
-convert{C<:Calendar}(::Type{Day{C}},x::Year{C})      = convert(Day{C},    int32(365x))
-convert{C<:Calendar}(::Type{Day{C}},x::Week{C})      = convert(Day{C},    int32(7x))
-convert{C<:Calendar}(::Type{Hour{C}},x::Year{C})     = convert(Hour{C},   int32(8760x))
-convert{C<:Calendar}(::Type{Hour{C}},x::Week{C})     = convert(Hour{C},   int32(168x))
-convert{C<:Calendar}(::Type{Hour{C}},x::Day{C})      = convert(Hour{C},   int32(24x))
-convert{C<:Calendar}(::Type{Minute{C}},x::Year{C})   = convert(Minute{C}, int32(525600x)) #Rent anybody?
-convert{C<:Calendar}(::Type{Minute{C}},x::Week{C})   = convert(Minute{C}, int32(10080x))
-convert{C<:Calendar}(::Type{Minute{C}},x::Day{C})    = convert(Minute{C}, int32(1440x))
-convert{C<:Calendar}(::Type{Minute{C}},x::Hour{C})   = convert(Minute{C}, int32(60x))
-convert{C<:Calendar}(::Type{Second{C}},x::Year{C})   = convert(Second{C}, int32(31536000x))
-convert{C<:Calendar}(::Type{Second{C}},x::Week{C})   = convert(Second{C}, int32(604800x))
-convert{C<:Calendar}(::Type{Second{C}},x::Day{C})    = convert(Second{C}, int32(86400x))
-convert{C<:Calendar}(::Type{Second{C}},x::Hour{C})   = convert(Second{C}, int32(3600x))
-convert{C<:Calendar}(::Type{Second{C}},x::Minute{C}) = convert(Second{C}, int32(60x))
 #Constructors; default to CALENDAR; with (s) too cutesy? seems natural/expected though
 years   = (year(x::PeriodMath)    = convert(Year{CALENDAR},x))
 months  = (month(x::PeriodMath)   = convert(Month{CALENDAR},x))
@@ -430,17 +415,20 @@ zero{P<:Period}(::Union(Type{P},P)) = convert(P,int32(0))
 one{P<:Period}(::Union(Type{P},P)) = convert(P,int32(1))
 #Period Arithmetic:
 isless{P<:Period}(x::P,y::P) = isless(int32(x),int32(y))
-isless(x::PeriodMath,y::PeriodMath) = isless(promote(x,y)...)
+isless(x::Period,y::Real) = isless(promote(x,y)...)
+isless(x::Real,y::Period) = isless(promote(x,y)...)
 isequal(x::Period,y::Real) = isequal(promote(x,y)...)
 isequal(x::Real,y::Period) = isequal(promote(x,y)...)
 (-){P<:Period}(x::P) = convert(P,-int32(x))
+(+)(x::Period,y::Period) = Period[x,y]
+(-)(x::Period,y::Period) = Period[x,-y]
+(+)(x::Array{Period},y::Period) = push!(x,y)
+(-)(x::Array{Period},y::Period) = push!(x,-y)
 for op in (:+,:-,:*,:/,:%,:fld)
 	@eval begin
 	($op){P<:Period}(x::P,y::P) = convert(P,($op)(int32(x),int32(y)))
 	($op){P<:Period}(x::P,y::Real) = ($op)(promote(x,y)...)
 	($op){P<:Period}(x::Real,y::P) = ($op)(promote(x,y)...)
-	!contains((/,%,fld),$op) && ( ($op)(x::Period,y::Period) = ($op)(promote(x,y)...) )
-	!contains((/,%,fld),$op) && @vectorize_2arg Period ($op)
 	end
 end
 #wrapping arithmetic
@@ -466,7 +454,7 @@ next(r::PeriodRange, i) = (r.start + convert(typeof(r.step),i*r.step), i+1)
 function show(io::IO,r::PeriodRange)
 	print(io, r.start, ':', r.step, ':', last(r))
 end
-colon{P<:Period}(t1::P, s::P, t2::P) = PeriodRange{P}(t1, s, fld(int32(t2)-int32(t1),int32(s)) + int32(1))
+colon{P<:Period}(t1::P, s::P, t2::P) = PeriodRange{P}(t1, s, fld(t2-t1,s) + int32(1))
 colon{P<:Period}(t1::P, t2::P) = PeriodRange{P}(t1, one(P), int32(t2)-int32(t1) + int32(1))
 (+){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start+p,r.step,r.len)
 (-){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start-p,r.step,r.len)

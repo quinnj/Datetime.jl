@@ -7,39 +7,33 @@ mi = minute(1)
 s = second(1)
 
 #Period arithmetic
-Base.Test.@test typeof(y+m) == Month{ISOCalendar}
-Base.Test.@test typeof(m+y) == Month{ISOCalendar}
-Base.Test.@test typeof(y+w) == Week{ISOCalendar}
-Base.Test.@test typeof(y+d) == Day{ISOCalendar}
-Base.Test.@test typeof(y+h) == Hour{ISOCalendar}
-Base.Test.@test typeof(y+mi) == Minute{ISOCalendar}
-Base.Test.@test typeof(y+s) == Second{ISOCalendar}
-Base.Test.@test_throws m+w
-Base.Test.@test_throws m+d
-Base.Test.@test_throws m+h
-Base.Test.@test_throws m+mi
-Base.Test.@test_throws m+s
-Base.Test.@test typeof(w+d) == Day{ISOCalendar}
-Base.Test.@test typeof(w+h) == Hour{ISOCalendar}
-Base.Test.@test typeof(w+mi) == Minute{ISOCalendar}
-Base.Test.@test typeof(w+s) == Second{ISOCalendar}
-Base.Test.@test typeof(d+h) == Hour{ISOCalendar}
-Base.Test.@test typeof(d+mi) == Minute{ISOCalendar}
-Base.Test.@test typeof(d+s) == Second{ISOCalendar}
-Base.Test.@test typeof(h+mi) == Minute{ISOCalendar}
-Base.Test.@test typeof(h+s) == Second{ISOCalendar}
-Base.Test.@test typeof(mi+s) == Second{ISOCalendar}
-Base.Test.@test y + m == months(13)
-Base.Test.@test y + w == weeks(53)
-Base.Test.@test y + d == days(366)
-Base.Test.@test y - m == months(11)
-Base.Test.@test y - w == weeks(51)
-Base.Test.@test y - d == days(364)
-Base.Test.@test y * m*months(2) == months(24)
-Base.Test.@test y * w*weeks(2) == weeks(104)
-Base.Test.@test y * d*days(2) == days(730)
-Base.Test.@test y > m
-Base.Test.@test d < w
+Base.Test.@test typeof(y+m) ==  Array{Period,1}
+Base.Test.@test typeof(m+y) ==  Array{Period,1}
+Base.Test.@test typeof(y+w) ==  Array{Period,1}
+Base.Test.@test typeof(y+d) ==  Array{Period,1}
+Base.Test.@test typeof(y+h) ==  Array{Period,1}
+Base.Test.@test typeof(y+mi) == Array{Period,1}
+Base.Test.@test typeof(y+s) ==  Array{Period,1}
+Base.Test.@test typeof(m+w) ==  Array{Period,1}
+Base.Test.@test typeof(m+d) ==  Array{Period,1}
+Base.Test.@test typeof(m+h) ==  Array{Period,1}
+Base.Test.@test typeof(m+mi) ==  Array{Period,1}
+Base.Test.@test typeof(m+s) ==  Array{Period,1}
+Base.Test.@test typeof(w+d) ==  Array{Period,1}
+Base.Test.@test typeof(w+h) ==  Array{Period,1}
+Base.Test.@test typeof(w+mi) ==  Array{Period,1}
+Base.Test.@test typeof(w+s) ==  Array{Period,1}
+Base.Test.@test typeof(d+h) ==  Array{Period,1}
+Base.Test.@test typeof(d+mi) ==  Array{Period,1}
+Base.Test.@test typeof(d+s) ==  Array{Period,1}
+Base.Test.@test typeof(h+mi) ==  Array{Period,1}
+Base.Test.@test typeof(h+s) ==  Array{Period,1}
+Base.Test.@test typeof(mi+s) ==  Array{Period,1}
+Base.Test.@test_throws y * m*months(2)
+Base.Test.@test_throws y * w*weeks(2)
+Base.Test.@test_throws y * d*days(2)
+Base.Test.@test_throws y > m
+Base.Test.@test_throws d < w
 Base.Test.@test typemax(Year) == 2147483647
 Base.Test.@test typemax(Year) + y == -2147483648
 Base.Test.@test typemin(Year) == -2147483648
@@ -62,9 +56,9 @@ Base.Test.@test t .+ year(2) == [year(3),year(3),year(3),year(3),year(3)]
 #traits
 Base.Test.@test zero(typeof(y)) == year(0)
 Base.Test.@test one(typeof(y)) == y
-Base.Test.@test months(y) == months(12)
-Base.Test.@test weeks(y) == weeks(52)
-Base.Test.@test days(y) == days(365)
+Base.Test.@test_throws months(y) == months(12)
+Base.Test.@test_throws weeks(y) == weeks(52)
+Base.Test.@test_throws days(y) == days(365)
 #wrapping
 Base.Test.@test addwrap(1,11) == 12 #month 1 plus 11 months == month 12
 Base.Test.@test addwrap(1,12) == 1  #month 1 plus 12 months == month 1
@@ -108,7 +102,7 @@ Base.Test.@test dt2 + days(4411) == date(2012,2,29)
 Base.Test.@test dt2 + days(4412) == date(2012,3,1)
 Base.Test.@test dt2 + weeks(52) == date(2001,1,30)
 Base.Test.@test dt2 + weeks(104) == date(2002,1,29)
-Base.Test.@test dt2 - month(1) + days(366) == date(2001,1,1)
+Base.Test.@test dt2 - (month(1) + days(366)) == date(2001,1,1)
 dt = date(1999,12,27)
 check = (52,52,52,52,52,52,52,1,1,1,1,1,1,1,2,2,2,2,2,2,2)
 for i = 1:21
