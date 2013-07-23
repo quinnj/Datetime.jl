@@ -259,7 +259,7 @@ Base.Test.@test t4 - hour(1) == t3
 
 #Conversion from Unix time
 _ = time()
-tt = unix2datetime(int64(_),TZ)
+tt = unix2datetime(1000000*int64(_),TZ)
 ttt = TmStruct(_)
 Base.Test.@test year(tt) == int("20"*string(digits(ttt.year)[2])*string(digits(ttt.year)[1]))
 Base.Test.@test month(tt) == ttt.month+1
