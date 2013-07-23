@@ -2,7 +2,7 @@ module Datetime
 
 importall Base
 
-export Calendar, ISOCalendar, Offsets, TimeZone, CALENDAR, OFFSET,
+export Calendar, ISOCalendar, Offsets, TimeZone, Offset, CALENDAR, OFFSET, Period,
 	Date, DateTime, DateRange, DateRange1, DateTimeRange, DateTimeRange1,
     Year, Month, Week, Day, Hour, Minute, Second,
     year, month, week, day, hour, minute, second,
@@ -23,6 +23,7 @@ CALENDAR = ISOCalendar
 setcalendar{C<:Calendar}(cal::Type{C}) = (global CALENDAR = cal)
 
 abstract Offsets <: AbstractTime
+abstract Offset{n} <: Offsets
 abstract TimeZone <: Offsets
 include("Timezone.jl")
 #Set the default timezone to use; overriding this will affect module-wide defaults
