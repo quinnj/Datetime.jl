@@ -161,23 +161,17 @@ timezone(x::String) = get(TIMEZONES,x,Zone0)
 timezone(dt::DateTime,tz::String) = timezone(dt,timezone(tz))
 
 #String/print/show
+_s(x::Int64) = @sprintf("%02d",x)
 function string(dt::Date)
 	y,m,d = _day2date(_days(dt))
 	y = y < 0 ? @sprintf("%05d",y) : @sprintf("%04d",y)
-	m = @sprintf("%02d",m)
-	d = @sprintf("%02d",d)
-	return string(y,"-",m,"-",d)
+	return string(y,"-",_s(m),"-",_s(d))
 end
 function string{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})
     y,m,d = _day2date(_days(dt))
     h,mi,s = hour(dt),minute(dt),second(dt)
-    yy =  @sprintf("%04d",y)   * "-"
-    m =  @sprintf("%02d",m)   * "-"
-    d =  @sprintf("%02d",d)   * "T"
-    h =  @sprintf("%02d",h)   * ":"
-   mi =  @sprintf("%02d",mi)  * ":" 
-    s =  @sprintf("%02d",s)	  * " " * getabr(T,dt,y)
-    return string(yy,m,d,h,mi,s)
+    return string(y < 0 ? @sprintf("%05d",y) : @sprintf("%04d",y),"-",
+    	_s(m),"-",_s(d),"T",_s(h),":",_s(mi),":",_s(s)," ",getabr(T,dt,y))
 end
 print(io::IO,x::TimeType) = print(io,string(x))
 show(io::IO,x::TimeType) = print(io,string(x))
