@@ -11,7 +11,7 @@ function test()
 end
 push!(perf,"Create UTC DateTime")
 push!(timing,test())
-push!(baseline,0.193)
+push!(baseline,0.12)
 function test()
 	tic()
 	y,m,d,h,mi,s = 1982,6,30,23,59,59
@@ -22,7 +22,7 @@ function test()
 end
 push!(perf,"Create VET DateTime")
 push!(timing,test())
-push!(baseline,1.17)
+push!(baseline,2.0)
 function test()
 	tic()
 	y,m,d,h,mi,s = 1982,6,30,23,59,59
@@ -33,7 +33,7 @@ function test()
 end
 push!(perf,"Create PST DateTime")
 push!(timing,test())
-push!(baseline,4.42)
+push!(baseline,4.3)
 function test()
 	tic()
 	dt = datetime(2013,7,8,23,59,59)
@@ -44,7 +44,7 @@ function test()
 end
 push!(perf,"lastdayofmonth DateTime")
 push!(timing,test())
-push!(baseline,0.62)
+push!(baseline,0.12)
 function test()
 	tic()
 	dt = datetime(2013,7,8,23,59,59)
@@ -55,7 +55,7 @@ function test()
 end
 push!(perf,"dayofyear DateTime")
 push!(timing,test())
-push!(baseline,0.57)
+push!(baseline,0.11)
 function test()
 	tic()
 	dt = datetime(2013,7,8,23,59,59)
@@ -66,7 +66,7 @@ function test()
 end
 push!(perf,"dayofweek DateTime")
 push!(timing,test())
-push!(baseline,0.006)
+push!(baseline,0.05)
 function test()
 	tic()
 	dt = datetime(2013,7,8,23,59,59)
@@ -77,7 +77,7 @@ function test()
 end
 push!(perf,"week DateTime")
 push!(timing,test())
-push!(baseline,0.02)
+push!(baseline,0.07)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
@@ -89,7 +89,7 @@ function test()
 end
 push!(perf,"+ years(1) DateTime")
 push!(timing,test())
-push!(baseline,0.8)
+push!(baseline,0.43)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
@@ -101,7 +101,7 @@ function test()
 end
 push!(perf,"+ months(1) DateTime")
 push!(timing,test())
-push!(baseline,1.17)
+push!(baseline,0.42)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
@@ -113,7 +113,7 @@ function test()
 end
 push!(perf,"+ weeks(1) DateTime")
 push!(timing,test())
-push!(baseline,0.05)
+push!(baseline,0.07)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
@@ -125,7 +125,7 @@ function test()
 end
 push!(perf,"+ days(1) DateTime")
 push!(timing,test())
-push!(baseline,0.05)
+push!(baseline,0.03)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
@@ -137,7 +137,7 @@ function test()
 end
 push!(perf,"+ hours(1) DateTime")
 push!(timing,test())
-push!(baseline,0.05)
+push!(baseline,0.07)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
@@ -149,7 +149,7 @@ function test()
 end
 push!(perf,"+ minutes(1) DateTime")
 push!(timing,test())
-push!(baseline,0.05)
+push!(baseline,0.08)
 function test()
 	tic()
 	t = datetime(2013,7,8,23,59,59)
@@ -161,7 +161,7 @@ function test()
 end
 push!(perf,"+ seconds(1) DateTime")
 push!(timing,test())
-push!(baseline,0.05)
+push!(baseline,0.07)
 
 #Date
 function test()
@@ -174,8 +174,8 @@ function test()
 end
 push!(perf,"Create Date")
 push!(timing,test())
-push!(baseline,0.01)
-function test() ####
+push!(baseline,0.07)
+function test()
 	tic()
 	dt = date(2013,7,8)
 	for i = 1:1000000
@@ -186,28 +186,28 @@ end
 push!(perf,"dayofyear Date")
 push!(timing,test())
 push!(baseline,0.03)
-function test() ####
-	tic()
-	dt = date(2013,7,8)
-	for i = 1:1000000
-		t = dayofweek(dt)
-	end
-	return toq()
-end
-push!(perf,"dayofweek Date")
-push!(timing,test())
-push!(baseline,0.0003)
-function test() #####
-	tic()
-	dt = date(2013,7,8)
-	for i = 1:1000000
-		t = week(dt)
-	end
-	return toq()
-end
-push!(perf,"week Date")
-push!(timing,test())
-push!(baseline,0.02)
+# function test() ####
+# 	tic()
+# 	dt = date(2013,7,8)
+# 	for i = 1:1000000
+# 		t = dayofweek(dt)
+# 	end
+# 	return toq()
+# end
+# push!(perf,"dayofweek Date")
+# push!(timing,test())
+# push!(baseline,0.0003)
+# function test() #####
+# 	tic()
+# 	dt = date(2013,7,8)
+# 	for i = 1:1000000
+# 		t = week(dt)
+# 	end
+# 	return toq()
+# end
+# push!(perf,"week Date")
+# push!(timing,test())
+# push!(baseline,0.02)
 function test()
 	tic()
 	t = date(2013,7,8)
@@ -219,7 +219,7 @@ function test()
 end
 push!(perf,"+ years(1) Date")
 push!(timing,test())
-push!(baseline,0.16)
+push!(baseline,0.15)
 function test()
 	tic()
 	t = date(2013,7,8)
@@ -231,7 +231,7 @@ function test()
 end
 push!(perf,"+ months(1) Date")
 push!(timing,test())
-push!(baseline,0.18)
+push!(baseline,0.23)
 function test()
 	tic()
 	t = date(2013,7,8)
@@ -243,7 +243,7 @@ function test()
 end
 push!(perf,"+ weeks(1) Date")
 push!(timing,test())
-push!(baseline,0.08)
+push!(baseline,0.05)
 function test()
 	tic()
 	t = date(2013,7,8)
@@ -255,7 +255,7 @@ function test()
 end
 push!(perf,"+ days(1) Date")
 push!(timing,test())
-push!(baseline,0.075)
+push!(baseline,0.06)
 #results
 results = [perf timing baseline]
 println(results)
