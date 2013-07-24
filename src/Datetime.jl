@@ -179,7 +179,7 @@ show(io::IO,x::TimeType) = print(io,string(x))
 #Generic date functions
 isleap(dt::DateTimeDate) = isleap(year(dt))
 lastdayofmonth(dt::DateTimeDate) = lastdayofmonth(year(dt),month(dt))
-dayofweek(dt::DateTimeDate) = (_days(dt) % 7) + 1
+dayofweek(dt::DateTimeDate) = (_days(dt) % 7)
 dayofweekinmonth(dt::DateTimeDate) = (d = day(dt); return d < 8 ? 1 : d < 15 ? 2 : d < 22 ? 3 : d < 29 ? 4 : 5)
 function daysofweekinmonth(dt::DateTimeDate)
 	d,ld = day(dt),lastdayofmonth(dt)
