@@ -10,7 +10,7 @@ export Calendar, ISOCalendar, Offsets, TimeZone, Offset, CALENDAR, OFFSET, Perio
     addwrap, subwrap, date, datetime, unix2datetime, totaldays,
     isleap, lastdayofmonth, dayofweek, dayofyear, isdate, isdatetime,
     dayofweekinmonth, daysofweekinmonth, firstdayofweek, lastdayofweek,
-    recur, now, today, calendar, timezone, setcalendar, settimezone,
+    recur, now, today, calendar, timezone, timezone!, setcalendar, settimezone,
     Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday,
     January, February, March, April, May, June, July,
     August, September, October, November, December
@@ -104,6 +104,7 @@ function _day2date(dt::Int64)
 	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
 	m = div(5c+456,153); d = c - div(153m-457,5); return m > 12 ? (y+1,m-12,d) : (y,m,d)
 end
+#https://en.wikipedia.org/wiki/Talk:ISO_week_date#Algorithms
 function _week(dt::Int64)
 	w = fld(abs(dt-1),7) % 20871
 	c = fld((w + (w >= 10435)),5218)
@@ -156,9 +157,9 @@ typemin{D<:DateTime}(::Type{D}) = datetime(-292276,1,1,0,0,0)
 isdatetime(x) = typeof(x) <: DateTime
 #Functions to work with timezones
 convert{C<:Calendar,T<:Offsets,TT<:Offsets}(::Type{DateTime{C,T}},x::DateTime{C,TT}) = convert(DateTime{C,TT},int64(x))
-timezone{C<:Calendar,T<:Offsets,TT<:Offsets}(dt::DateTime{C,T},tz::Type{TT}) = convert(DateTime{C,TT},int64(dt))
+timezone!{C<:Calendar,T<:Offsets,TT<:Offsets}(dt::DateTime{C,T},tz::Type{TT}) = convert(DateTime{C,TT},int64(dt))
 timezone(x::String) = get(TIMEZONES,x,Zone0)
-timezone(dt::DateTime,tz::String) = timezone(dt,timezone(tz))
+timezone!(dt::DateTime,tz::String) = timezone!(dt,timezone(tz))
 
 #String/print/show
 _s(x::Int64) = @sprintf("%02d",x)
@@ -383,6 +384,8 @@ convert{P<:Period}(::Type{P},x::Real) = convert(P,int32(x))
 convert{R<:Real}(::Type{R},x::Period) = convert(R,int32(x))
 for period in (Year,Month,Week,Day,Hour,Minute,Second)
 	@eval convert(::Type{$period},x::Int32) = convert($period{CALENDAR},int32(x))
+	@eval promote_rule{P<:$period,PP<:$period}(::Type{P},::Type{PP}) = $period{CALENDAR}
+	@eval convert{P<:$period}(::Type{$period{ISOCalendar}},x::P) = convert($period{ISOCalendar},int32(x))
 end
 promote_rule{P<:Period,R<:Real}(::Type{P},::Type{R}) = R
 promote_rule{A<:Period,B<:Period}(::Type{A},::Type{B}) =
