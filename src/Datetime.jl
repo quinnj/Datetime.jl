@@ -222,7 +222,7 @@ for op in (:+,:*,:/)
     @eval ($op)(x::DateTimeDate,y::DateTimeDate) = Base.no_op_err($op,"Date/DateTime")
 end
 (-){C<:Calendar}(x::Date{C},y::Date{C}) = days(-(int64(x),int64(y)))
-(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::DateTime{C,T}) = seconds(-(int64(x),int64(y)))
+(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::DateTime{C,T}) = int64(x)-int64(y)
 (-)(x::DateTimeDate,y::DateTimeDate) = (-)(promote(x,y)...)
 #years
 function (+){C<:Calendar}(dt::Date{C},y::Year{C})
