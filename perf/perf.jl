@@ -174,8 +174,13 @@ function test()
 end
 push!(perf,"Create Date")
 push!(timing,test())
+<<<<<<< HEAD
 push!(baseline,0.07)
 function test()
+=======
+push!(baseline,0.01)
+function test() ####
+>>>>>>> origin/master
 	tic()
 	dt = date(2013,7,8)
 	for i = 1:1000000
@@ -186,6 +191,7 @@ end
 push!(perf,"dayofyear Date")
 push!(timing,test())
 push!(baseline,0.03)
+<<<<<<< HEAD
 # function test() ####
 # 	tic()
 # 	dt = date(2013,7,8)
@@ -208,6 +214,30 @@ push!(baseline,0.03)
 # push!(perf,"week Date")
 # push!(timing,test())
 # push!(baseline,0.02)
+=======
+function test() ####
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = dayofweek(dt)
+	end
+	return toq()
+end
+push!(perf,"dayofweek Date")
+push!(timing,test())
+push!(baseline,0.0003)
+function test() #####
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = week(dt)
+	end
+	return toq()
+end
+push!(perf,"week Date")
+push!(timing,test())
+push!(baseline,0.02)
+>>>>>>> origin/master
 function test()
 	tic()
 	t = date(2013,7,8)
