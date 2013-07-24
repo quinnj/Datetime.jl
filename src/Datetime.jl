@@ -105,10 +105,10 @@ function _day2date(dt::Int64)
 	m = div(5c+456,153); d = c - div(153m-457,5); return m > 12 ? (y+1,m-12,d) : (y,m,d)
 end
 function _week(dt::Int64)
-	w = fld(dt,7) % 20871
+	w = fld(abs(dt-1),7) % 20871
 	c = fld((w + (w >= 10435)),5218)
 	w = (w + (w >= 10435)) % 5218
-	w = (w*28+(15,23,3,11)[abs(c)+1]) % 1461
+	w = (w*28+(15,23,3,11)[c+1]) % 1461
 	return fld(w,28) + 1
 end
 const DAYSINMONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
