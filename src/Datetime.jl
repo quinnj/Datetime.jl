@@ -82,25 +82,25 @@ isequal(x::TimeType,y::TimeType) = isequal(promote(x,y)...)
 #Convert y,m,d to # of Rata Die days
 yeardays(y::Int64) = 365y + fld(y,4) - fld(y,100) + fld(y,400)
 const monthdays = [306, 337, 0, 31, 61, 92, 122, 153, 184, 214, 245, 275]
-totaldays(y::Int64,m::Int64,d::Int64) = d + monthdays[m] + yeardays(m<3 ? y-1 : y) - 307
+totaldays(y::Int64,m::Int64,d::Int64) = d + monthdays[m] + yeardays(m<3 ? y-1 : y) - 306
 #Convert # of Rata Die days to proleptic Gregorian calendar y,m,d,w
 function _year(dt::Int64)
-	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	z = dt + 306; h = 100z - 25;	a = fld(h,3652425)
 	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
 	m = div(5c+456,153); return m > 12 ? y+1 : y	
 end
 function _month(dt::Int64)
-	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	z = dt + 306; h = 100z - 25;	a = fld(h,3652425)
 	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
 	m = div(5c+456,153); return m > 12 ? m-12 : m
 end
 function _day(dt::Int64)
-	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	z = dt + 306; h = 100z - 25;	a = fld(h,3652425)
 	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
 	m = div(5c+456,153); d = c - div(153m-457,5); return d
 end
 function _day2date(dt::Int64)
-	z = dt + 307; h = 100z - 25;	a = fld(h,3652425)
+	z = dt + 306; h = 100z - 25;	a = fld(h,3652425)
 	b = a - fld(a,4); y = fld(100b+h,36525); c = b + z - 365y - fld(y,4)
 	m = div(5c+456,153); d = c - div(153m-457,5); return m > 12 ? (y+1,m-12,d) : (y,m,d)
 end
@@ -108,7 +108,7 @@ function _week(dt::Int64)
 	w = fld(dt,7) % 20871
 	c = fld((w + (w >= 10435)),5218)
 	w = (w + (w >= 10435)) % 5218
-	w = (w*28+(15,23,3,11)[c+1]) % 1461
+	w = (w*28+(15,23,3,11)[abs(c)+1]) % 1461
 	return fld(w,28) + 1
 end
 const DAYSINMONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
@@ -163,7 +163,7 @@ timezone(dt::DateTime,tz::String) = timezone(dt,timezone(tz))
 #String/print/show
 function string(dt::Date)
 	y,m,d = _day2date(_days(dt))
-	y = y < 1 ? @sprintf("%05d",y-1) : @sprintf("%04d",y)
+	y = y < 0 ? @sprintf("%05d",y) : @sprintf("%04d",y)
 	m = @sprintf("%02d",m)
 	d = @sprintf("%02d",d)
 	return string(y,"-",m,"-",d)
