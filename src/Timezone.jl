@@ -2,7 +2,7 @@
 setoffset{n}(tz::Type{Offset{n}},secs,y,s) = 60*n - (y < 1972 ? 0 : s == 60 ? leaps1(secs) : leaps(secs))
 getoffset{n}(tz::Type{Offset{n}},secs) = 60*n - leaps(secs)
 getoffset_secs{n}(tz::Type{Offset{n}},secs) = 60*n - leaps1(secs)
-getabr{n}(tz::Type{Offset{n}},secs,y) = (sign(n) == 1 ? "+" : "") * "$n" #need better printing here: http://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC
+getabr{n}(tz::Type{Offset{n}},secs,y) = (nn = fld(abs(n),60); nnn = abs(n) % 60; string(sign(n) == 1 ? "+" : "-",_s(nn),nnn == 0 ? "" : ":$(_s(nnn))"))
 #TimeZone code
 #Define "ZoneX" for each zone_id in Olson tz database
 for tz in (:Zone0  ,:Zone1  ,:Zone2  ,:Zone3  ,:Zone4  ,:Zone5  ,:Zone6  ,:Zone7  ,:Zone8  ,:Zone9  ,:Zone10 ,:Zone11 ,:Zone12 ,:Zone13 ,:Zone14 ,:Zone15 ,:Zone16 ,:Zone17 ,:Zone18 ,:Zone19 ,:Zone20 ,:Zone21 ,:Zone22 ,:Zone23 ,:Zone24 ,:Zone25 ,:Zone26 ,:Zone27 ,:Zone28 ,:Zone29 ,:Zone30 ,:Zone31 ,:Zone32 ,:Zone33 ,:Zone34 ,:Zone35 ,:Zone36 ,:Zone37 ,:Zone38 ,:Zone39 ,:Zone40 ,:Zone41 ,:Zone42 ,:Zone43 ,:Zone44 ,:Zone45 ,:Zone46 ,:Zone47 ,:Zone48 ,:Zone49 ,
