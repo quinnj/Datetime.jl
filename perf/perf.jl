@@ -71,6 +71,50 @@ function test()
 	tic()
 	dt = datetime(2013,7,8,23,59,59)
 	for i = 1:1000000
+		t = dayofweekinmonth(dt)
+	end
+	return toq()
+end
+push!(perf,"dayofweekinmonth DateTime")
+push!(timing,test())
+push!(baseline,0.05)
+function test()
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
+	for i = 1:1000000
+		t = daysofweekinmonth(dt)
+	end
+	return toq()
+end
+push!(perf,"daysofweekinmonth DateTime")
+push!(timing,test())
+push!(baseline,0.05)
+function test()
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
+	for i = 1:1000000
+		t = firstdayofweek(dt)
+	end
+	return toq()
+end
+push!(perf,"firstdayofweek DateTime")
+push!(timing,test())
+push!(baseline,0.05)
+function test()
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
+	for i = 1:1000000
+		t = lastdayofweek(dt)
+	end
+	return toq()
+end
+push!(perf,"lastdayofweek DateTime")
+push!(timing,test())
+push!(baseline,0.05)
+function test()
+	tic()
+	dt = datetime(2013,7,8,23,59,59)
+	for i = 1:1000000
 		t = week(dt)
 	end
 	return toq()
@@ -174,13 +218,8 @@ function test()
 end
 push!(perf,"Create Date")
 push!(timing,test())
-<<<<<<< HEAD
 push!(baseline,0.07)
 function test()
-=======
-push!(baseline,0.01)
-function test() ####
->>>>>>> origin/master
 	tic()
 	dt = date(2013,7,8)
 	for i = 1:1000000
@@ -191,30 +230,61 @@ end
 push!(perf,"dayofyear Date")
 push!(timing,test())
 push!(baseline,0.03)
-<<<<<<< HEAD
-# function test() ####
-# 	tic()
-# 	dt = date(2013,7,8)
-# 	for i = 1:1000000
-# 		t = dayofweek(dt)
-# 	end
-# 	return toq()
-# end
-# push!(perf,"dayofweek Date")
-# push!(timing,test())
-# push!(baseline,0.0003)
-# function test() #####
-# 	tic()
-# 	dt = date(2013,7,8)
-# 	for i = 1:1000000
-# 		t = week(dt)
-# 	end
-# 	return toq()
-# end
-# push!(perf,"week Date")
-# push!(timing,test())
-# push!(baseline,0.02)
-=======
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = lastdayofmonth(dt)
+	end
+	return toq()
+end
+push!(perf,"lastdayofmonth Date")
+push!(timing,test())
+push!(baseline,0.03)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = dayofweekinmonth(dt)
+	end
+	return toq()
+end
+push!(perf,"dayofweekinmonth Date")
+push!(timing,test())
+push!(baseline,0.03)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = daysofweekinmonth(dt)
+	end
+	return toq()
+end
+push!(perf,"daysofweekinmonth Date")
+push!(timing,test())
+push!(baseline,0.03)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = firstdayofweek(dt)
+	end
+	return toq()
+end
+push!(perf,"firstdayofweek Date")
+push!(timing,test())
+push!(baseline,0.03)
+function test()
+	tic()
+	dt = date(2013,7,8)
+	for i = 1:1000000
+		t = lastdayofweek(dt)
+	end
+	return toq()
+end
+push!(perf,"lastdayofweek Date")
+push!(timing,test())
+push!(baseline,0.03)
 function test() ####
 	tic()
 	dt = date(2013,7,8)
@@ -237,7 +307,6 @@ end
 push!(perf,"week Date")
 push!(timing,test())
 push!(baseline,0.02)
->>>>>>> origin/master
 function test()
 	tic()
 	t = date(2013,7,8)

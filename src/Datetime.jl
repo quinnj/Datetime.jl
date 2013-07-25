@@ -275,8 +275,8 @@ end
 (-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Hour{C})   = (x = int64(x)-3600000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
 (+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Minute{C}) = (x = int64(x)+60000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
 (-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Minute{C}) = (x = int64(x)-60000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = (x = int64(x)+1000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = (x = int64(x)-1000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)+1000000*int64(y))
+(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)-1000000*int64(y))
 (+)(y::Period,x::DateTimeDate) = x + y
 (-)(y::Period,x::DateTimeDate) = x - y
 typealias DateTimePeriod Union(DateTimeDate,Period)
