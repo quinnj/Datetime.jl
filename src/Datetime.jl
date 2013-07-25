@@ -10,7 +10,7 @@ export Calendar, ISOCalendar, Offsets, TimeZone, Offset, CALENDAR, OFFSET, Perio
     addwrap, subwrap, date, datetime, unix2datetime, totaldays,
     isleap, lastdayofmonth, dayofweek, dayofyear, isdate, isdatetime,
     dayofweekinmonth, daysofweekinmonth, firstdayofweek, lastdayofweek,
-    recur, now, today, calendar, timezone, timezone!, setcalendar, settimezone,
+    recur, now, today, calendar, timezone, offset, setcalendar, settimezone,
     Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday,
     January, February, March, April, May, June, July,
     August, September, October, November, December
@@ -157,9 +157,10 @@ typemin{D<:DateTime}(::Type{D}) = datetime(-292276,1,1,0,0,0)
 isdatetime(x) = typeof(x) <: DateTime
 #Functions to work with timezones
 convert{C<:Calendar,T<:Offsets,TT<:Offsets}(::Type{DateTime{C,T}},x::DateTime{C,TT}) = convert(DateTime{C,TT},int64(x))
-timezone!{C<:Calendar,T<:Offsets,TT<:Offsets}(dt::DateTime{C,T},tz::Type{TT}) = convert(DateTime{C,TT},int64(dt))
+timezone{C<:Calendar,T<:Offsets,TT<:Offsets}(dt::DateTime{C,T},tz::Type{TT}) = convert(DateTime{C,TT},int64(dt))
+offset{C<:Calendar,T<:Offsets,TT<:Offsets}(dt::DateTime{C,T},tz::Type{TT}) = convert(DateTime{C,TT},int64(dt))
 timezone(x::String) = get(TIMEZONES,x,Zone0)
-timezone!(dt::DateTime,tz::String) = timezone!(dt,timezone(tz))
+timezone(dt::DateTime,tz::String) = timezone(dt,timezone(tz))
 
 #String/print/show
 _s(x::Int64) = @sprintf("%02d",x)
@@ -428,6 +429,8 @@ typemin{P<:Period}(::Type{P}) = convert(P,typemin(Int32))
 typemax{P<:Period}(::Type{P}) = convert(P,typemax(Int32))
 zero{P<:Period}(::Union(Type{P},P)) = convert(P,int32(0))
 one{P<:Period}(::Union(Type{P},P)) = convert(P,int32(1))
+offset(x::Period) = return Offset{int(minutes(x))}
+offset(x::Period...) = return Offset{int(minutes(sum(x...)))}
 #Period Arithmetic:
 isless{P<:Period}(x::P,y::P) = isless(int32(x),int32(y))
 isless(x::PeriodMath,y::PeriodMath) = isless(promote(x,y)...)
