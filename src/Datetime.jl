@@ -385,6 +385,7 @@ convert{P<:Period}(::Type{P},x::Real) = convert(P,int32(x))
 convert{R<:Real}(::Type{R},x::Period) = convert(R,int32(x))
 for period in (Year,Month,Week,Day,Hour,Minute,Second)
 	@eval convert(::Type{$period},x::Int32) = convert($period{CALENDAR},int32(x))
+	@eval promote_rule{P<:$period}(::Type{P},::Type{P}) = $period{CALENDAR}
 	@eval promote_rule{P<:$period,PP<:$period}(::Type{P},::Type{PP}) = $period{CALENDAR}
 	@eval convert{P<:$period}(::Type{$period{ISOCalendar}},x::P) = convert($period{ISOCalendar},int32(x))
 end
@@ -434,6 +435,8 @@ offset(x::Period...) = return Offset{int(minutes(sum(x...)))}
 #Period Arithmetic:
 isless{P<:Period}(x::P,y::P) = isless(int32(x),int32(y))
 isless(x::PeriodMath,y::PeriodMath) = isless(promote(x,y)...)
+isequal{P<:Period}(x::P,y::P) = isequal(int32(x),int32(y))
+isequal(x::Period,y::Period) = isequal(promote(x,y)...)
 isequal(x::Period,y::Real) = isequal(promote(x,y)...)
 isequal(x::Real,y::Period) = isequal(promote(x,y)...)
 (-){P<:Period}(x::P) = convert(P,-int32(x))
