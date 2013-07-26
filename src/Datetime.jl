@@ -134,6 +134,19 @@ datetime{C<:Calendar,T<:Offsets}(y::Int64,m::Int64=1,d::Int64=1,h::Int64=0,mi::I
 datetime{C<:Calendar,T<:Offsets}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,h::PeriodMath=0,mi::PeriodMath=0,s::PeriodMath=0,cal::Type{C}=CALENDAR,tz::Type{T}=OFFSET) = 
 	datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),tz,cal)
 datetime(y::Int64,m::Int64,d::Int64,h::Int64,mi::Int64,s::Int64,tz::String) = datetime(y,m,d,h,mi,s,CALENDAR,timezone(tz))
+function date(s::String)
+	if ismatch(r"[\/|\-|\.|,|\s]",s)
+		m = match(r"[\/|\-|\.|,|\s]",s)
+		a,b,c = split(s,m.match)
+		y = length(a) == 4 ? int64(a) : length(c) == 4 ? int64(c) : 0
+		a,b,c = int64(a),int64(b),int64(c)
+		y == 0 && (y = c > 49 ? c + 1900 : c + 2000)
+		m,d = y == a ? (b,c) : (a,b)
+		return m > 12 ? date(y,d,m) : date(y,m,d)
+	else
+		error("Can't parse Date, please use parsedate(format,datestring)")
+	end
+end
 
 #Accessor/trait functions
 typealias DateTimeDate Union(DateTime,Date)

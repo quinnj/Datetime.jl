@@ -1,7 +1,7 @@
 y = year(1)
-m = month(1)
-w = week(1)
-d = day(1)
+m = months(1)
+w = weeks(1)
+d = days(1)
 h = hour(1)
 mi = minute(1)
 s = second(1)
@@ -217,6 +217,29 @@ for i = 1:21
 	Base.Test.@test week(dt) == check[i]
 	dt = dt + day(1)
 end
+#Simple Date parsing
+a = "2005-01-31"
+b = "2005/31/01"
+c = "01.31.2005"
+d = "31 01 2005"
+aa = "2005,1,31"
+bb = "2005-31-1"
+cc = "1-31-2005"
+dd = "31-1-2005"
+aaa = "05-01-31"
+bbb = "05/31/01"
+ccc = "01.31.05"
+ddd = "31 01 05"
+e = "20050131"
+ee = "2005131"
+for i in (a,b,c,d,aa,bb,cc,dd,ccc,ddd)
+	Base.Test.@test date(i) == date(2005,1,31)
+end	
+Base.Test.@test date(aaa) == date(2031,5,1)
+Base.Test.@test date(bbb) == date(2001,5,31)
+Base.Test.@test_throws date(e)
+Base.Test.@test_throws date(ee)
+
 #DateRange
 dt1 = date(2000,1,1)
 dt2 = date(2010,1,1)
