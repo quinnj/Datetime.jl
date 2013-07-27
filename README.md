@@ -14,7 +14,6 @@ julia> Pkg.add("Datetime") # Creates the Datetime repo folder and downloads the 
 julia> using Datetime      # Loads the Datetime module for use (needs to be run with each new Julia instance)
 ```
 
-Welcome to the Datetime.jl wiki!
 
 * Checkout the [Datetime manual](https://github.com/karbarcca/Datetime.jl/wiki/Datetime-Manual)
 
