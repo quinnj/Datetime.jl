@@ -166,8 +166,8 @@ typemin{D<:Date}(::Type{D}) = date(-252522163911150,1,1)
 isdate(n) = typeof(n) <: Date
 calendar{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = C
 timezone{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = T
-typemax{D<:DateTime}(::Type{D}) = datetime(292277,12,31,23,59,59)
-typemin{D<:DateTime}(::Type{D}) = datetime(-292276,1,1,0,0,0)
+typemax{D<:DateTime}(::Type{D}) = datetime(292277024,12,31,23,59,59)
+typemin{D<:DateTime}(::Type{D}) = datetime(-292277024,12,31,23,59,59)
 isdatetime(x) = typeof(x) <: DateTime
 #Functions to work with timezones
 convert{C<:Calendar,T<:Offsets,TT<:Offsets}(::Type{DateTime{C,T}},x::DateTime{C,TT}) = convert(DateTime{C,TT},int64(x))
