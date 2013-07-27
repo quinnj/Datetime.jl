@@ -298,8 +298,8 @@ Base.Test.@test week(dt) == 27
 Base.Test.@test isdatetime(dt)
 Base.Test.@test calendar(dt) == ISOCalendar
 Base.Test.@test timezone(dt) == Datetime.Zone0
-Base.Test.@test typemax(DateTime) == datetime(292277,12,31,23,59,59)
-Base.Test.@test typemin(DateTime) == datetime(-292276,1,1,0,0,0)
+Base.Test.@test typemax(DateTime) == datetime(292277024,12,31,23,59,59)
+Base.Test.@test typemin(DateTime) == datetime(-292277024,12,31,23,59,59)
 Base.Test.@test isleap(dt) == false
 Base.Test.@test lastdayofmonth(dt) == 31
 Base.Test.@test dayofweek(dt) == 1
