@@ -5,8 +5,8 @@ importall Base
 export Calendar, ISOCalendar, Offsets, TimeZone, Offset, CALENDAR, OFFSET, Period,
 	Date, DateTime, DateRange, DateRange1, DateTimeRange, DateTimeRange1,
     Year, Month, Week, Day, Hour, Minute, Second,
-    year, month, week, day, hour, minute, second,
-    years,months,weeks,days,hours,minutes,seconds,
+    year, month, week, day, hour, minute, second, millisecond,
+    years,months,weeks,days,hours,minutes,seconds, milliseconds,
     addwrap, subwrap, date, datetime, unix2datetime, totaldays,
     isleap, lastdayofmonth, dayofweek, dayofyear, isdate, isdatetime,
     dayofweekinmonth, daysofweekinmonth, firstdayofweek, lastdayofweek,
@@ -54,7 +54,7 @@ promote_rule{T<:TimeType,R<:Real}(::Type{T},::Type{R}) = R
 convert{T<:TimeType}(::Type{T},x::Real) = convert(T,int64(x))
 convert{R<:Real}(::Type{R}, x::TimeType) = convert(R,int64(x))
 promote_rule{C<:Calendar,T<:Offsets}(::Type{Date{C}},::Type{DateTime{C,T}}) = DateTime{C,T}
-convert{T<:Offsets}(::Type{DateTime{ISOCalendar,T}},x::Date) = convert(DateTime{ISOCalendar,T},86400000000*int64(x))
+convert{T<:Offsets}(::Type{DateTime{ISOCalendar,T}},x::Date) = convert(DateTime{ISOCalendar,T},86400000*int64(x))
 convert(::Type{Date{ISOCalendar}},x::DateTime) = convert(Date{ISOCalendar},_days(x))
 date(x::DateTime) = convert(Date{CALENDAR},x)
 datetime(x::Date) = convert(DateTime{CALENDAR,OFFSET},x)
@@ -122,15 +122,15 @@ getoffset(tz::Type{UTC},secs) = 0 - leaps(secs)
 getoffset_secs(tz::Type{UTC},secs) = 0 - leaps1(secs)
 getabr(tz::Type{UTC},secs,y) = "UTC"
 #DateTime constructor with timezone and/or leap seconds
-const _leaps  = [62214479999000000,62230377599000000,62261913599000000,62293449599000000,62324985599000000,62356607999000000,62388143999000000,62419679999000000,62451215999000000,62498476799000000,62530012799000000,62561548799000000,62624707199000000,62703676799000000,62766835199000000,62798371199000000,62845631999000000,62877167999000000,62908703999000000,62956137599000000,63003398399000000,63050831999000000,63271756799000000,63366451199000000,63476783999000000,9223372036854775807]
-const _leaps1 = [62214480000000000,62230377601000000,62261913602000000,62293449603000000,62324985604000000,62356608005000000,62388144006000000,62419680007000000,62451216008000000,62498476809000000,62530012810000000,62561548811000000,62624707212000000,62703676813000000,62766835214000000,62798371215000000,62845632016000000,62877168017000000,62908704018000000,62956137619000000,63003398420000000,63050832021000000,63271756822000000,63366451223000000,63476784024000000,9223372036854775807]
-leaps(secs::Union(DateTime,Int64))  = (i = 1; while true; @inbounds (_leaps[i]  >= secs && break); i+=1 end; return 1000000*(i-1))
-leaps1(secs::Union(DateTime,Int64)) = (i = 1; while true; @inbounds (_leaps1[i] >= secs && break); i+=1 end; return 1000000*(i-1))
+const _leaps  = [62214479999000,62230377599000,62261913599000,62293449599000,62324985599000,62356607999000,62388143999000,62419679999000,62451215999000,62498476799000,62530012799000,62561548799000,62624707199000,62703676799000,62766835199000,62798371199000,62845631999000,62877167999000,62908703999000,62956137599000,63003398399000,63050831999000,63271756799000,63366451199000,63476783999000,9223372036854775807]
+const _leaps1 = [62214480000000,62230377601000,62261913602000,62293449603000,62324985604000,62356608005000,62388144006000,62419680007000,62451216008000,62498476809000,62530012810000,62561548811000,62624707212000,62703676813000,62766835214000,62798371215000,62845632016000,62877168017000,62908704018000,62956137619000,63003398420000,63050832021000,63271756822000,63366451223000,63476784024000,9223372036854775807]
+leaps(secs::Union(DateTime,Int64))  = (i = 1; while true; @inbounds (_leaps[i]  >= secs && break); i+=1 end; return 1000*(i-1))
+leaps1(secs::Union(DateTime,Int64)) = (i = 1; while true; @inbounds (_leaps1[i] >= secs && break); i+=1 end; return 1000*(i-1))
 
 date{C<:Calendar}(y::Int64,m::Int64=1,d::Int64=1,cal::Type{C}=CALENDAR) = convert(Date{cal},totaldays(y,m,d))
 date{C<:Calendar}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,cal::Type{C}=CALENDAR) = date(int64(y),int64(m),int64(d),cal)
 datetime{C<:Calendar,T<:Offsets}(y::Int64,m::Int64=1,d::Int64=1,h::Int64=0,mi::Int64=0,s::Int64=0,tz::Type{T}=OFFSET,cal::Type{C}=CALENDAR) = 
-	(secs = 1000000*(s + 60mi + 3600h + 86400*totaldays(y,m,d)); return convert(DateTime{cal,tz}, secs - setoffset(tz,secs,y,s)))
+	(secs = 1000*(s + 60mi + 3600h + 86400*totaldays(y,m,d)); return convert(DateTime{cal,tz}, secs - setoffset(tz,secs,y,s)))
 datetime{C<:Calendar,T<:Offsets}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,h::PeriodMath=0,mi::PeriodMath=0,s::PeriodMath=0,cal::Type{C}=CALENDAR,tz::Type{T}=OFFSET) = 
 	datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),tz,cal)
 datetime(y::Int64,m::Int64,d::Int64,h::Int64,mi::Int64,s::Int64,tz::String) = datetime(y,m,d,h,mi,s,CALENDAR,timezone(tz))
@@ -151,14 +151,15 @@ end
 #Accessor/trait functions
 typealias DateTimeDate Union(DateTime,Date)
 _days(dt::Date) = int64(dt)
-_days{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = fld(int64(dt)+getoffset(T,dt),86400000000)
+_days{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = fld(int64(dt)+getoffset(T,dt),86400000)
 year(dt::DateTimeDate) = _year(_days(dt))
 month(dt::DateTimeDate) = _month(_days(dt))
 week(dt::DateTimeDate) = _week(_days(dt))
 day(dt::DateTimeDate) = _day(_days(dt))
-hour{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})     = fld(int64(dt)+getoffset(T,dt),3600000000) % 24
-minute{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = fld(int64(dt)+getoffset(T,dt),60000000) % 60
-second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000000) % 60; return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
+hour{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})     = fld(int64(dt)+getoffset(T,dt),3600000) % 24
+minute{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = fld(int64(dt)+getoffset(T,dt),60000) % 60
+second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000) % 60; return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
+milliseconds = (millisecond(dt::DateTime) = int64(dt) % 1000)
 calendar{C<:Calendar}(dt::Date{C}) = C
 typemax{D<:Date}(::Type{D}) = date(252522163911149,12,31)
 typemin{D<:Date}(::Type{D}) = date(-252522163911150,1,1)
@@ -203,9 +204,9 @@ function daysofweekinmonth(dt::DateTimeDate)
 		   contains((1,2,3,8,9,10,15,16,17,22,23,24,29,30,31),d) ? 5 : 4
 end
 firstdayofweek{C<:Calendar}(dt::Date{C}) = (d = dayofweek(dt); return convert(Date{C},int64(dt) - d + 1))
-firstdayofweek{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = (d = dayofweek(dt); return convert(DateTime{C,T},int64(dt) - 86400000000*(d - 1)))
+firstdayofweek{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = (d = dayofweek(dt); return convert(DateTime{C,T},int64(dt) - 86400000*(d - 1)))
 lastdayofweek{C<:Calendar}(dt::Date{C}) = (d = dayofweek(dt); return convert(Date{C},int64(dt) + (7-d)))
-lastdayofweek{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = (d = dayofweek(dt); return convert(DateTime{C,T},int64(dt) + 86400000000*(7-d)))
+lastdayofweek{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = (d = dayofweek(dt); return convert(DateTime{C,T},int64(dt) + 86400000*(7-d)))
 dayofyear(dt::DateTimeDate) = _days(dt) - totaldays(year(dt),1,1) + 1
 @vectorize_1arg DateTimeDate isleap
 @vectorize_1arg DateTimeDate lastdayofmonth
@@ -217,10 +218,10 @@ dayofyear(dt::DateTimeDate) = _days(dt) - totaldays(year(dt),1,1) + 1
 @vectorize_1arg DateTimeDate dayofyear
 
 #TimeType-specific functions (now, unix2datetime, today)
-const UNIXEPOCH = 62135683200000000 #Rata Die microseconds for 1970-01-01T00:00:00 UTC
+const UNIXEPOCH = 62135683200000 #Rata Die milliseconds for 1970-01-01T00:00:00 UTC
 unix2datetime{T<:Offsets}(x::Int64,tz::Type{T}) = convert(DateTime{CALENDAR,tz},UNIXEPOCH + x + leaps(UNIXEPOCH + x))
-now() = unix2datetime(1000000*int64(time()),OFFSET)
-now{T<:Offsets}(tz::Type{T}) = unix2datetime(1000000*int64(time()),tz)
+now() = unix2datetime(int64(1000*time()),OFFSET)
+now{T<:Offsets}(tz::Type{T}) = unix2datetime(int64(1000*time()),tz)
 today() = date(now())
 
 #TimeType arithmetic
@@ -280,16 +281,16 @@ end
 (-){C<:Calendar}(x::Date{C},y::Week{C}) = convert(Date{C},(int64(x) - 7*int64(y)))
 (+){C<:Calendar}(x::Date{C},y::Day{C})  = convert(Date{C},(int64(x) + int64(y)))
 (-){C<:Calendar}(x::Date{C},y::Day{C})  = convert(Date{C},(int64(x) - int64(y)))
-(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Week{C})   = (x = int64(x)+604800000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Week{C})   = (x = int64(x)-604800000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Day{C})    = (x = int64(x)+86400000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Day{C})    = (x = int64(x)-86400000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Hour{C})   = (x = int64(x)+3600000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Hour{C})   = (x = int64(x)-3600000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Minute{C}) = (x = int64(x)+60000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Minute{C}) = (x = int64(x)-60000000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
-(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)+1000000*int64(y))
-(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)-1000000*int64(y))
+(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Week{C})   = (x = int64(x)+604800000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Week{C})   = (x = int64(x)-604800000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Day{C})    = (x = int64(x)+86400000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Day{C})    = (x = int64(x)-86400000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Hour{C})   = (x = int64(x)+3600000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Hour{C})   = (x = int64(x)-3600000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Minute{C}) = (x = int64(x)+60000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Minute{C}) = (x = int64(x)-60000*int64(y) - leaps(int64(x)); convert(DateTime{C,T},x+leaps(x)))
+(+){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)+1000*int64(y))
+(-){C<:Calendar,T<:Offsets}(x::DateTime{C,T},y::Second{C}) = convert(DateTime{C,T},int64(x)-1000*int64(y))
 (+)(y::Period,x::DateTimeDate) = x + y
 (-)(y::Period,x::DateTimeDate) = x - y
 typealias DateTimePeriod Union(DateTimeDate,Period)
@@ -385,9 +386,9 @@ colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, y::Year{C}, t2::DateTime{C,T}) 
 colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, m::Month{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, m, fld((year(t2)-year(t1))*12+month(t2)-month(t1),m) + 1)
 colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, w::Week{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, w, fld(_days(t2)-_days(t1),7w)+1)
 colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, d::Day{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, d, fld(_days(t2)-_days(t1),d)+1)
-colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, h::Hour{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, h, fld(fld(int64(t2),3600000000)-fld(int64(t1),3600000000),h)+1)
-colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, mi::Minute{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, mi, fld(fld(int64(t2),60000000)-fld(int64(t1),60000000),mi)+1)
-colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, s::Second{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, s, fld(fld(int64(t2),1000000)-fld(int64(t1),1000000),s)+1)
+colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, h::Hour{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, h, fld(fld(int64(t2),3600000)-fld(int64(t1),3600000),h)+1)
+colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, mi::Minute{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, mi, fld(fld(int64(t2),60000)-fld(int64(t1),60000),mi)+1)
+colon{C<:Calendar,T<:Offsets}(t1::DateTime{C,T}, s::Second{C}, t2::DateTime{C,T}) = DateTimeRange{C,T}(t1, s, fld(fld(int64(t2),1000)-fld(int64(t1),1000),s)+1)
 (+){C<:Calendar,T<:Offsets}(r::DateTimeRange{C,T},p::DatePeriod) = DateTimeRange{C,T}(r.start+p,r.step,r.len)
 (-){C<:Calendar,T<:Offsets}(r::DateTimeRange{C,T},p::DatePeriod) = DateTimeRange{C,T}(r.start-p,r.step,r.len)
 

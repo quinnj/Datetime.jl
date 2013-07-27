@@ -106,8 +106,8 @@ Base.Test.@test convert(Date,0) == date(year(0),month(12),day(31))
 Base.Test.@test convert(Date,-1) == date(0,12,30)
 Base.Test.@test_throws dt2 + y #Diff calendars
 dt3 = datetime(1,1,1)
-Base.Test.@test convert(DateTime,86400000000) == dt3
-dt4 = convert(DateTime{Calendar,UTC},float64(86400000000))
+Base.Test.@test convert(DateTime,86400000) == dt3
+dt4 = convert(DateTime{Calendar,UTC},float64(86400000))
 Base.Test.@test typeof(dt4) == DateTime{Calendar,UTC}
 a,b = promote(dt3,dt4) #checks 2 diff calendars promotion
 Base.Test.@test typeof(a) == DateTime{ISOCalendar,UTC}
@@ -116,7 +116,7 @@ Base.Test.@test dt3 == dt4
 Base.Test.@test dt3 - dt4 == seconds(0)
 Base.Test.@test_throws dt3 + dt4
 Base.Test.@test !(dt3 > dt4)
-Base.Test.@test int64(hash(dt3)) == 5985883073428173759
+Base.Test.@test int64(hash(dt3)) == 2879920070571771443
 Base.Test.@test length(dt3) == 1
 a,b = promote(dt,dt3) #promote Date => DateTime
 Base.Test.@test typeof(a) == DateTime{ISOCalendar,UTC}
@@ -293,7 +293,7 @@ Base.Test.@test hour(dt) == 0
 Base.Test.@test minute(dt) == 0
 Base.Test.@test second(dt) == 0
 Base.Test.@test string(dt) == "2013-07-01T00:00:00 UTC"
-Base.Test.@test Datetime._days(dt) == 735050 == fld(int64(dt),86400000000)
+Base.Test.@test Datetime._days(dt) == 735050 == fld(int64(dt),86400000)
 Base.Test.@test week(dt) == 27
 Base.Test.@test isdatetime(dt)
 Base.Test.@test calendar(dt) == ISOCalendar
@@ -309,7 +309,7 @@ Base.Test.@test firstdayofweek(dt) == dt
 Base.Test.@test lastdayofweek(dt) == dt + days(6)
 Base.Test.@test dayofyear(dt) == 182
 Base.Test.@test typeof(now()) <: DateTime
-Base.Test.@test int64(dt) == 63508320025000000
+Base.Test.@test int64(dt) == 63508320025000
 Base.Test.@test second(datetime(1972,6,30,22,58,60)) == 0 #entering "invalid" periods just rolls the date forward
 dt = datetime(2012,2,29)
 dt2 = datetime(2000,2,1)
@@ -322,7 +322,7 @@ Base.Test.@test +dt == dt
 Base.Test.@test_throws dt + dt2
 Base.Test.@test_throws dt * dt2
 Base.Test.@test_throws dt / dt2
-Base.Test.@test dt - dt2 == 381110402000000
+Base.Test.@test dt - dt2 == 381110402000
 Base.Test.@test dt > dt2
 Base.Test.@test dt2 < dt
 Base.Test.@test dt2 - year(3) == datetime(1997,2,1)
@@ -391,32 +391,32 @@ end
 # _leapmoments = ref(Int64) #1 sec before a leap second in a timeline that ignores leap seconds
 # _leapmoments1 = ref(Int64) #leap second moment in leap second timeline
 # for i in 1:size(_lm)[1]
-# 	l = 1000000*(_lm[i,6] + 
+# 	l = 1000*(_lm[i,6] + 
 # 		60*_lm[i,5] + 3600*_lm[i,4] + 
 # 		86400*totaldays(_lm[i,1],_lm[i,2],_lm[i,3]))
 # 	push!(_leapmoments,l)
-# 	push!(_leapmoments1,l+(1000000*length(_leapmoments)))
+# 	push!(_leapmoments1,l+(1000*length(_leapmoments)))
 # end
 q = datetime(1972,6,30,23,59,58)
 t = datetime(1972,6,30,23,59,59)
-Base.Test.@test t - q == 1000000
+Base.Test.@test t - q == 1000
 Base.Test.@test t == t
 r = datetime(1972,7,1,0,0,0)
-Base.Test.@test r - t == 2000000 #Includes leap second
+Base.Test.@test r - t == 2000 #Includes leap second
 n = datetime(1972,6,30,23,59,60)
-Base.Test.@test n - t == 1000000
-Base.Test.@test r - n == 1000000
+Base.Test.@test n - t == 1000
+Base.Test.@test r - n == 1000
 a = datetime(1972,12,31,23,59,59)
 b = datetime(1972,12,31,23,59,60)
 c = datetime(1973,1,1,0,0,0)
 d = datetime(1973,1,1,0,0,1)
-Base.Test.@test c - b == 1000000
-Base.Test.@test b - a == 1000000
+Base.Test.@test c - b == 1000
+Base.Test.@test b - a == 1000
 a = datetime(1982,6,30,23,59,59)
 b = datetime(1982,6,30,23,59,60)
 c = datetime(1982,7,1,0,0,0)
-Base.Test.@test c - b == 1000000
-Base.Test.@test b - a == 1000000
+Base.Test.@test c - b == 1000
+Base.Test.@test b - a == 1000
 
 #Offsets
 TZ = CST
@@ -424,9 +424,9 @@ a = datetime(1972,12,31,17,59,59,TZ)
 b = datetime(1972,12,31,17,59,60,TZ)
 c = datetime(1972,12,31,18,0,0,TZ)
 d = datetime(1972,12,31,18,0,1,TZ)
-Base.Test.@test c - b == 1000000
-Base.Test.@test b - a == 1000000
-Base.Test.@test c - a == 2000000 #Includes leap second
+Base.Test.@test c - b == 1000
+Base.Test.@test b - a == 1000
+Base.Test.@test c - a == 2000 #Includes leap second
 bb = timezone(b,PST)
 Base.Test.@test bb == b
 bb = timezone(b,"Pacific/Honolulu")
@@ -444,8 +444,8 @@ Base.Test.@test timezone(datetime(2013,7,6,0,0,0,"America/Chicago")) == CDT
 t1 = datetime(1920,6,13,1,59,59,CST)
 t2 = datetime(1920,6,13,2,0,0,CST)
 t3 = datetime(1920,6,13,3,0,0,CST)
-Base.Test.@test t2 - t1 == 1000000
-Base.Test.@test t3 - t1 == 1000000
+Base.Test.@test t2 - t1 == 1000
+Base.Test.@test t3 - t1 == 1000
 Base.Test.@test t3 == t2
 Base.Test.@test t1 + second(1) == t2
 Base.Test.@test t1 + second(1) == t3
@@ -454,7 +454,7 @@ Base.Test.@test t4 - hour(1) == t3
 
 #Conversion from Unix time
 # _ = time()
-# tt = unix2datetime(1000000*int64(_),TZ)
+# tt = unix2datetime(1000*int64(_),TZ)
 # ttt = TmStruct(_)
 # Base.Test.@test year(tt) == int("20"*string(digits(ttt.year)[2])*string(digits(ttt.year)[1]))
 # Base.Test.@test month(tt) == ttt.month+1
