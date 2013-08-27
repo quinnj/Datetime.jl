@@ -15,7 +15,7 @@ export Calendar, ISOCalendar, Offsets, TimeZone, Offset, CALENDAR, OFFSET, Perio
     Mon,Tue,Wed,Thu,Fri,Sat,Sun,
     January, February, March, April, May, June, July,
     August, September, October, November, December,
-	Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
+	Jan,Feb,Mar,Apr,Jun,Jul,Aug,Sep,Oct,Nov,Dec
 
 abstract AbstractTime
 abstract Calendar <: AbstractTime
@@ -368,7 +368,7 @@ recur{C<:Calendar}(fun::Function,di::DateRange{C}) = colon(di.start,fun,last(di)
 const Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday = 1,2,3,4,5,6,7
 const January,February,March,April,May,June,July,August,September,October,November,December = 1,2,3,4,5,6,7,8,9,10,11,12
 const Mon,Tue,Wed,Thu,Fri,Sat,Sun = 1,2,3,4,5,6,7
-const Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec = 1,2,3,4,5,6,7,8,9,10,11,12
+const Jan,Feb,Mar,Apr,Jun,Jul,Aug,Sep,Oct,Nov,Dec = 1,2,3,4,5,6,7,8,9,10,11,12
 
 immutable DateTimeRange{C<:Calendar,T<:Offsets} <: Ranges{DateTime{C,T}}
 	start::DateTime{C,T}
