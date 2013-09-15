@@ -1,5 +1,6 @@
 Datetime.jl
 =======
+[![Build Status](https://travis-ci.org/karbarcca/Datetime.jl.png)](https://travis-ci.org/karbarcca/Datetime.jl)
 
 A Date and DateTime implementation for Julia
 
