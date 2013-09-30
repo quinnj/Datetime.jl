@@ -299,7 +299,7 @@ Base.Test.@test isdatetime(dt)
 Base.Test.@test calendar(dt) == ISOCalendar
 Base.Test.@test timezone(dt) == Datetime.Zone0
 Base.Test.@test typemax(DateTime) == datetime(292277024,12,31,23,59,59)
-Base.Test.@test typemin(DateTime) == datetime(-292277024,12,31,23,59,59)
+Base.Test.@test typemin(DateTime) == datetime(-292277023,1,1,0,0,0)
 Base.Test.@test isleap(dt) == false
 Base.Test.@test lastdayofmonth(dt) == 31
 Base.Test.@test dayofweek(dt) == 1
@@ -420,10 +420,10 @@ Base.Test.@test b - a == 1000
 
 #Offsets
 TZ = CST
-a = datetime(1972,12,31,17,59,59,TZ)
-b = datetime(1972,12,31,17,59,60,TZ)
-c = datetime(1972,12,31,18,0,0,TZ)
-d = datetime(1972,12,31,18,0,1,TZ)
+a = datetime(1972,12,31,17,59,59,0,TZ)
+b = datetime(1972,12,31,17,59,60,0,TZ)
+c = datetime(1972,12,31,18,0,0,0,TZ)
+d = datetime(1972,12,31,18,0,1,0,TZ)
 Base.Test.@test c - b == 1000
 Base.Test.@test b - a == 1000
 Base.Test.@test c - a == 2000 #Includes leap second
@@ -438,18 +438,18 @@ aa = offset(a,Offset{-360})
 Base.Test.@test aa == a
 Base.Test.@test offset(a,Offset{-600}) == timezone(a,"Pacific/Honolulu")
 Base.Test.@test offset(a,offset(hours(10))) == timezone(a,"Pacific/Honolulu")
-Base.Test.@test timezone(datetime(2013,7,6,0,0,0,"America/Chicago")) == CDT
+Base.Test.@test timezone(datetime(2013,7,6,0,0,0,0,"America/Chicago")) == CDT
 
 #Daylight savings time
-t1 = datetime(1920,6,13,1,59,59,CST)
-t2 = datetime(1920,6,13,2,0,0,CST)
-t3 = datetime(1920,6,13,3,0,0,CST)
+t1 = datetime(1920,6,13,1,59,59,0,CST)
+t2 = datetime(1920,6,13,2,0,0,0,CST)
+t3 = datetime(1920,6,13,3,0,0,0,CST)
 Base.Test.@test t2 - t1 == 1000
 Base.Test.@test t3 - t1 == 1000
 Base.Test.@test t3 == t2
 Base.Test.@test t1 + second(1) == t2
 Base.Test.@test t1 + second(1) == t3
-t4 = datetime(1920,6,13,4,0,0,CST)
+t4 = datetime(1920,6,13,4,0,0,0,CST)
 Base.Test.@test t4 - hour(1) == t3
 
 #Conversion from Unix time
