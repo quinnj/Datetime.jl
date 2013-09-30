@@ -165,7 +165,7 @@ week(dt::DateTimeDate) = _week(_days(dt))
 day(dt::DateTimeDate) = _day(_days(dt))
 hour{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})     = fld(int64(dt)+getoffset(T,dt),3600000) % 24
 minute{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = fld(int64(dt)+getoffset(T,dt),60000) % 60
-second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000) % 60; return s != 0 ? s : contains(_leaps1,dt) ? 60 : 0)
+second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000) % 60; return s != 0 ? s : dt in _leaps1 ? 60 : 0)
 milliseconds = (millisecond(dt::DateTime) = int64(dt) % 1000)
 calendar{C<:Calendar}(dt::Date{C}) = C
 typemax{D<:Date}(::Type{D}) = date(252522163911149,12,31)
@@ -206,9 +206,9 @@ dayofweek(dt::DateTimeDate) = (_days(dt) % 7)
 dayofweekinmonth(dt::DateTimeDate) = (d = day(dt); return d < 8 ? 1 : d < 15 ? 2 : d < 22 ? 3 : d < 29 ? 4 : 5)
 function daysofweekinmonth(dt::DateTimeDate)
 	d,ld = day(dt),lastdayofmonth(dt)
-	return ld == 28 ? 4 : ld == 29 ? (contains((1,8,15,22,29),d) ? 5 : 4) :
-		   ld == 30 ? (contains((1,2,8,9,15,16,22,23,29,30),d) ? 5 : 4) :
-		   contains((1,2,3,8,9,10,15,16,17,22,23,24,29,30,31),d) ? 5 : 4
+	return ld == 28 ? 4 : ld == 29 ? ((d in (1,8,15,22,29)) ? 5 : 4) :
+		   ld == 30 ? ((d in (1,2,8,9,15,16,22,23,29,30)) ? 5 : 4) :
+		   (d in (1,2,3,8,9,10,15,16,17,22,23,24,29,30,31)) ? 5 : 4
 end
 firstdayofweek{C<:Calendar}(dt::Date{C}) = (d = dayofweek(dt); return convert(Date{C},int64(dt) - d + 1))
 firstdayofweek{C<:Calendar,T<:Offsets}(dt::DateTime{C,T}) = (d = dayofweek(dt); return convert(DateTime{C,T},int64(dt) - 86400000*(d - 1)))
@@ -468,8 +468,8 @@ for op in (:+,:-,:*,:/,:%,:fld)
 	($op){P<:Period}(x::P,y::P) = convert(P,($op)(int32(x),int32(y)))
 	($op){P<:Period}(x::P,y::Real) = ($op)(promote(x,y)...)
 	($op){P<:Period}(x::Real,y::P) = ($op)(promote(x,y)...)
-	!contains((/,%,fld),$op) && ( ($op)(x::Period,y::Period) = ($op)(promote(x,y)...) )
-	!contains((/,%,fld),$op) && @vectorize_2arg Period ($op)
+	!($op in (/,%,fld)) && ( ($op)(x::Period,y::Period) = ($op)(promote(x,y)...) )
+	!($op in (/,%,fld)) && @vectorize_2arg Period ($op)
 	end
 end
 #wrapping arithmetic
