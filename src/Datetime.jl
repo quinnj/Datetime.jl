@@ -154,6 +154,48 @@ function date(s::String)
 		error("Can't parse Date, please use parsedate(format,datestring)")
 	end
 end
+type DateTimeFormat
+	year::Range1
+	month::Range1
+	day::Range1
+	hour::Range1
+	minute::Range1
+	second::Range1
+	fraction::Range1
+	tz::Range1
+	sep::String
+	#ampm::Bool
+end
+function DateTimeFormat(f::String)
+	y = first(search(f,"y")):last(rsearch(f,"y"))
+	mon = first(search(f,"M")):last(rsearch(f,"M"))
+	d = first(search(f,"d")):last(rsearch(f,"d"))
+	h = first(search(f,"H")):last(rsearch(f,"H"))
+	# if h == 0:-1
+	# 	h = first(search(f,"H")):last(rsearch(f,"H"))
+	# 	ampm = false
+	# else
+	# 	ampm = true
+	# end
+	min = first(search(f,"m")):last(rsearch(f,"m"))
+	s = first(search(f,"s")):last(rsearch(f,"s"))
+	frac = first(search(f,"S")):last(rsearch(f,"S"))
+	sep = ismatch(r"[\/|\-|\.|,|\s]",f) ? match(r"[\/|\-|\.|,|\s]",f).match : ""
+	tz = first(search(f,"z")):last(rsearch(f,"z"))
+	return DateTimeFormat(y,mon,d,h,min,s,frac,tz,sep) #,ampm)
+end
+function datetime(f::String,dt::String)
+	format = DateTimeFormat(f)
+	y = format.year == 0:-1 ? 1 : int(dt[format.year])
+	mon = format.month == 0:-1 ? 1 : int(dt[format.month])
+	d = format.day == 0:-1 ? 1 : int(dt[format.day])
+	h = format.hour == 0:-1 ? 0 : int(dt[format.hour])
+	min = format.minute == 0:-1 ? 0 : int(dt[format.minute])
+	s = format.second == 0:-1 ? 0 : int(dt[format.second])
+	frac = format.fraction == 0:-1 ? 0 : int(dt[format.fraction])*100
+	tz = format.tz == 0:-1 ? "UTC" : dt[format.tz]
+	return datetime(y,mon,d,h,min,s,frac,tz)
+end
 
 #Accessor/trait functions
 typealias DateTimeDate Union(DateTime,Date)
