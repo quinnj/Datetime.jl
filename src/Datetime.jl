@@ -151,7 +151,7 @@ function date(s::String)
 		m,d = y == a ? (b,c) : (a,b)
 		return m > 12 ? date(y,d,m) : date(y,m,d)
 	else
-		error("Can't parse Date, please use parsedate(format,datestring)")
+		error("Can't parse Date, please use date(format,datestring)")
 	end
 end
 type DateTimeFormat
@@ -184,8 +184,7 @@ function DateTimeFormat(f::String)
 	tz = first(search(f,"z")):last(rsearch(f,"z"))
 	return DateTimeFormat(y,mon,d,h,min,s,frac,tz,sep) #,ampm)
 end
-function datetime(f::String,dt::String)
-	format = DateTimeFormat(f)
+function dt2string(format::DateTimeFormat,dt::String)
 	y = format.year == 0:-1 ? 1 : int(dt[format.year])
 	mon = format.month == 0:-1 ? 1 : int(dt[format.month])
 	d = format.day == 0:-1 ? 1 : int(dt[format.day])
@@ -193,8 +192,17 @@ function datetime(f::String,dt::String)
 	min = format.minute == 0:-1 ? 0 : int(dt[format.minute])
 	s = format.second == 0:-1 ? 0 : int(dt[format.second])
 	frac = format.fraction == 0:-1 ? 0 : int(dt[format.fraction])*100
-	tz = format.tz == 0:-1 ? "UTC" : dt[format.tz]
+	tz = format.tz == 0:-1 ? UTC : dt[format.tz]
 	return datetime(y,mon,d,h,min,s,frac,tz)
+end
+datetime(f::String,dt::String) = dt2string(DateTimeFormat(f),dt)
+function datetime{T<:String}(f::T,t::Array{T})
+	ff = DateTimeFormat(f)
+	ret = DateTime{CALENDAR,OFFSET}[]
+	for i in t
+		push!(ret,dt2string(ff,i))
+	end
+	return ret
 end
 
 #Accessor/trait functions
