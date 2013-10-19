@@ -51,9 +51,10 @@ Base.Test.@test 1 + y == 2
 Base.Test.@test y + 1.0 == 2.0
 Base.Test.@test y * 4 == 4
 Base.Test.@test y * 4f0 == 4.0f0
-Base.Test.@test y * 3//4 == 3//4
-Base.Test.@test y / 2 == 0.5
+Base.Test.@test y * 3//4 == year(1)
+Base.Test.@test y / 2 == year(1)
 Base.Test.@test 2 / y == 2
+Base.Test.@test y / y == 1
 Base.Test.@test y*10 % 5 == 0
 Base.Test.@test 5 % y*10 == 0
 Base.Test.@test !(y > 3)
