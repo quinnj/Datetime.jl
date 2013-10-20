@@ -78,6 +78,7 @@ isequal{T<:TimeType}(x::T,y::T) = isequal(int64(x),int64(y))
 isequal(x::TimeType,y::Real) = isequal(int64(x),int64(y))
 isequal(x::Real,y::TimeType) = isequal(int64(x),int64(y))
 isequal(x::TimeType,y::TimeType) = isequal(promote(x,y)...)
+isfinite(x::TimeType) = true
 
 #Date algorithm implementations
 #Source: Peter Baum - http://mysite.verizon.net/aesir_research/date/date0.htm
@@ -513,15 +514,28 @@ isequal(x::Period,y::Period) = isequal(promote(x,y)...)
 isequal(x::Period,y::Real) = isequal(promote(x,y)...)
 isequal(x::Real,y::Period) = isequal(promote(x,y)...)
 (-){P<:Period}(x::P) = convert(P,-int32(x))
-for op in (:+,:-,:*,:/,:%,:fld)
+for op in (:+,:-,:%,:fld)
 	@eval begin
-	($op){P<:Period}(x::P,y::P) = convert(P,($op)(int32(x),int32(y)))
+    ($op != /) && (($op){P<:Period}(x::P,y::P) = convert(P,($op)(int32(x),int32(y))))
 	($op){P<:Period}(x::P,y::Real) = ($op)(promote(x,y)...)
 	($op){P<:Period}(x::Real,y::P) = ($op)(promote(x,y)...)
 	!($op in (/,%,fld)) && ( ($op)(x::Period,y::Period) = ($op)(promote(x,y)...) )
 	!($op in (/,%,fld)) && @vectorize_2arg Period ($op)
 	end
 end
+
+for op in (:*, :/)
+    @eval begin
+    ($op){P<:Period}(x::P,y::P) = convert(P,($op)(int32(x),int32(y)))
+	($op){P<:Period}(x::P,y::Real) = convert(P, ($op)(promote(x,y)...))
+	($op){P<:Period}(x::Real,y::P) = convert(P, ($op)(promote(x,y)...))
+	($op)(x::Period,y::Period) = ($op)(promote(x,y)...)
+	@vectorize_2arg Period ($op)
+    end
+end
+
+(/){P<:Period}(x::P,y::P) = int32(x) / int32(y)
+
 #wrapping arithmetic
 addwrap(x::Int64,y::Int64) = (v = (x + y)      % 12; return v == 0 ? 12 : v)
 subwrap(x::Int64,y::Int64) = (v = (x - y + 12) % 12; return v == 0 ? 12 : v)
