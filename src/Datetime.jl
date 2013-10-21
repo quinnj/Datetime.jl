@@ -352,8 +352,11 @@ end
 (+)(y::Period,x::DateTimeDate) = x + y
 (-)(y::Period,x::DateTimeDate) = x - y
 typealias DateTimePeriod Union(DateTimeDate,Period)
-@vectorize_2arg DateTimePeriod (-)
-@vectorize_2arg DateTimePeriod (+)
+(+){T<:DateTimePeriod}(x::DateTimePeriod, y::AbstractArray{T}) = reshape([x + y[i] for i in 1:length(y)], size(y))
+(+){T<:DateTimePeriod}(x::AbstractArray{T}, y::DateTimePeriod) = reshape([x[i] + y for i in 1:length(x)], size(x))
+(-){T<:DateTimePeriod}(x::DateTimePeriod, y::AbstractArray{T}) = reshape([x - y[i] for i in 1:length(y)], size(y))
+(-){T<:DateTimePeriod}(x::AbstractArray{T}, y::DateTimePeriod) = reshape([x[i] - fyor i in 1:length(x)], size(x))
+
 
 #DateRange: for creating fixed period frequencies
 immutable DateRange{C<:Calendar} <: Ranges{Date{C}}
@@ -520,8 +523,11 @@ for op in (:+,:-,:%,:fld)
 	($op){P<:Period}(x::P,y::Real) = ($op)(promote(x,y)...)
 	($op){P<:Period}(x::Real,y::P) = ($op)(promote(x,y)...)
 	!($op in (/,%,fld)) && ( ($op)(x::Period,y::Period) = ($op)(promote(x,y)...) )
-	!($op in (/,%,fld)) && @vectorize_2arg Period ($op)
+    if !($op in (/,%,fld))
+        ($op){P<:Period}(x::Period, y::AbstractArray{P}) = reshape([($op)(x, y[i]) for i in 1:length(y)], size(y))
+        ($op){P<:Period}(x::AbstractArray{P}, y::Period) = reshape([($op)(x[i], y) for i in 1:length(x)], size(x))
 	end
+    end
 end
 
 for op in (:*, :/)
@@ -530,7 +536,8 @@ for op in (:*, :/)
 	($op){P<:Period}(x::P,y::Real) = convert(P, ($op)(promote(x,y)...))
 	($op){P<:Period}(x::Real,y::P) = convert(P, ($op)(promote(x,y)...))
 	($op)(x::Period,y::Period) = ($op)(promote(x,y)...)
-	@vectorize_2arg Period ($op)
+    ($op){P<:Period}(x::Period, y::AbstractArray{P}) = reshape([($op)(x, y[i]) for i in 1:length(y)], size(y))
+    ($op){P<:Period}(x::AbstractArray{P}, y::Period) = reshape([($op)(x[i], y) for i in 1:length(x)], size(x))
     end
 end
 
