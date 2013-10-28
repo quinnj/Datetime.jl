@@ -139,7 +139,7 @@ date{C<:Calendar}(y::Int64,m::Int64=1,d::Int64=1,cal::Type{C}=CALENDAR) = conver
 date{C<:Calendar}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,cal::Type{C}=CALENDAR) = date(int64(y),int64(m),int64(d),cal)
 datetime{C<:Calendar,T<:Offsets}(y::Int64,m::Int64=1,d::Int64=1,h::Int64=0,mi::Int64=0,s::Int64=0,milli::Int64=0,tz::Type{T}=OFFSET,cal::Type{C}=CALENDAR) = 
 	(secs = milli + 1000*(s + 60mi + 3600h + 86400*totaldays(y,m,d)); return convert(DateTime{cal,tz}, secs - setoffset(tz,secs,y,s)))
-datetime{C<:Calendar,T<:Offsets}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,h::PeriodMath=0,mi::PeriodMath=0,s::PeriodMath=0,millis::PeriodMath=0,cal::Type{C}=CALENDAR,tz::Type{T}=OFFSET) = 
+datetime{C<:Calendar,T<:Offsets}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,h::PeriodMath=0,mi::PeriodMath=0,s::PeriodMath=0,millis::PeriodMath=0,tz::Type{T}=OFFSET,cal::Type{C}=CALENDAR) = 
 	datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),int64(millis),tz,cal)
 datetime(y::Int64,m::Int64,d::Int64,h::Int64,mi::Int64,s::Int64,milli::Int64,tz::String) = datetime(y,m,d,h,mi,s,milli,timezone(tz),CALENDAR)
 function date(s::String)
