@@ -139,8 +139,8 @@ date{C<:Calendar}(y::Int64,m::Int64=1,d::Int64=1,cal::Type{C}=CALENDAR) = conver
 date{C<:Calendar}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,cal::Type{C}=CALENDAR) = date(int64(y),int64(m),int64(d),cal)
 datetime{C<:Calendar,T<:Offsets}(y::Int64,m::Int64=1,d::Int64=1,h::Int64=0,mi::Int64=0,s::Int64=0,milli::Int64=0,tz::Type{T}=OFFSET,cal::Type{C}=CALENDAR) = 
 	(secs = milli + 1000*(s + 60mi + 3600h + 86400*totaldays(y,m,d)); return convert(DateTime{cal,tz}, secs - setoffset(tz,secs,y,s)))
-datetime{C<:Calendar,T<:Offsets}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,h::PeriodMath=0,mi::PeriodMath=0,s::PeriodMath=0,cal::Type{C}=CALENDAR,tz::Type{T}=OFFSET) = 
-	datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),tz,cal)
+datetime{C<:Calendar,T<:Offsets}(y::PeriodMath,m::PeriodMath=1,d::PeriodMath=1,h::PeriodMath=0,mi::PeriodMath=0,s::PeriodMath=0,millis::PeriodMath=0,tz::Type{T}=OFFSET,cal::Type{C}=CALENDAR) = 
+	datetime(int64(y),int64(m),int64(d),int64(h),int64(mi),int64(s),int64(millis),tz,cal)
 datetime(y::Int64,m::Int64,d::Int64,h::Int64,mi::Int64,s::Int64,milli::Int64,tz::String) = datetime(y,m,d,h,mi,s,milli,timezone(tz),CALENDAR)
 function date(s::String)
 	if ismatch(r"[\/|\-|\.|,|\s]",s)
@@ -216,7 +216,7 @@ week(dt::DateTimeDate) = _week(_days(dt))
 day(dt::DateTimeDate) = _day(_days(dt))
 hour{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})     = fld(int64(dt)+getoffset(T,dt),3600000) % 24
 minute{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = fld(int64(dt)+getoffset(T,dt),60000) % 60
-second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000) % 60; return s != 0 ? s : dt in _leaps1 ? 60 : 0)
+second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000) % 60; return s != 0 ? s : dt in _leaps1 ? int64(60) : int64(0))
 milliseconds = (millisecond(dt::DateTime) = int64(dt) % 1000)
 calendar{C<:Calendar}(dt::Date{C}) = C
 typemax{D<:Date}(::Type{D}) = date(252522163911149,12,31)

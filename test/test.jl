@@ -502,3 +502,8 @@ r = dt1:seconds(86400):dt2
 Base.Test.@test length(r) == 31
 Base.Test.@test last(r) == datetime(2000,1,31)
 Base.Test.@test typeof(r.step) == Second{ISOCalendar}
+
+#Test for 32 bit issues #20
+datetime(int32(2013),int32(10),int32(27),int32(11),int32(10),int32(9))
+datetime(int32(2013),int32(10),int32(27),int32(11),int32(10),int32(9), int32(8), timezone("UTC"))
+
