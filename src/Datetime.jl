@@ -216,7 +216,7 @@ week(dt::DateTimeDate) = _week(_days(dt))
 day(dt::DateTimeDate) = _day(_days(dt))
 hour{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})     = fld(int64(dt)+getoffset(T,dt),3600000) % 24
 minute{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = fld(int64(dt)+getoffset(T,dt),60000) % 60
-second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000) % 60; return s != 0 ? s : dt in _leaps1 ? 60 : 0)
+second{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})   = (s = fld(int64(dt)+getoffset_secs(T,dt),1000) % 60; return s != 0 ? s : dt in _leaps1 ? int64(60) : int64(0))
 milliseconds = (millisecond(dt::DateTime) = int64(dt) % 1000)
 calendar{C<:Calendar}(dt::Date{C}) = C
 typemax{D<:Date}(::Type{D}) = date(252522163911149,12,31)
