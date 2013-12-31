@@ -205,6 +205,47 @@ function datetime{T<:String}(f::T,t::Array{T})
 	end
 	return ret
 end
+# convert Julian time into datetime
+# ganked from a gank of Numerical Recipes, Press et al
+function datetime(f::Float64)
+    integer = floor(f)
+    fraction = f - integer
+    
+    # deal with Gregorian hiccup
+    if integer >= 2299161
+        tmp = floor((integer - 1867215.75) / 36524.25)
+        integer += 1 + tmp - floor(tmp/4)
+    end
+    
+    fraction += .5
+    if fraction >= 1
+        fraction -= 1
+        integer += 1
+    end
+    
+    j2 = integer + 1524
+    j3 = floor((j2 - 122.1) / 365.25)
+    j4 = floor(365.25j3)
+	j5 = floor((j2 - j4)/30.6001)
+
+    day = floor(j2 - j4 - floor(30.6001j5))
+    month = j5 - 1
+    if month > 12
+        month -= 12
+    end
+    year = floor(j3 - 4715)
+    if month > 2
+        year -= 1
+    end
+    if year <= 0
+        year -= 1
+    end
+    
+    hour = floor(fraction * 24)
+    minute = floor((fraction * 24 - hour) * 60)
+    second = round(((fraction * 24 - hour) * 60 - minute) * 60)
+    datetime([int(i) for i in [year, month, day, hour, minute, second]]...)
+end
 
 #Accessor/trait functions
 typealias DateTimeDate Union(DateTime,Date)

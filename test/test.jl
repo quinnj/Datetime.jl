@@ -502,3 +502,7 @@ r = dt1:seconds(86400):dt2
 Base.Test.@test length(r) == 31
 Base.Test.@test last(r) == datetime(2000,1,31)
 Base.Test.@test typeof(r.step) == Second{ISOCalendar}
+
+# Julian conversion
+Base.Test.@test datetime(2452695.625) == datetime(2003, 2, 25, 3)
+Base.Test.@test datetime(2456630.375) == datetime(2013, 12, 3, 21)
