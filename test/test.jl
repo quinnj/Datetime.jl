@@ -507,3 +507,6 @@ Base.Test.@test typeof(r.step) == Second{ISOCalendar}
 datetime(int32(2013),int32(10),int32(27),int32(11),int32(10),int32(9))
 datetime(int32(2013),int32(10),int32(27),int32(11),int32(10),int32(9), int32(8), timezone("UTC"))
 
+# Julian conversion
+Base.Test.@test datetime(2452695.625) == datetime(2003, 2, 25, 3)
+Base.Test.@test datetime(2456630.375) == datetime(2013, 12, 3, 21)
