@@ -15,7 +15,8 @@ export Calendar, ISOCalendar, Offsets, TimeZone, Offset, CALENDAR, OFFSET, Perio
     Mon,Tue,Wed,Thu,Fri,Sat,Sun,
     January, February, March, April, May, June, July,
     August, September, October, November, December,
-	Jan,Feb,Mar,Apr,Jun,Jul,Aug,Sep,Oct,Nov,Dec
+	Jan,Feb,Mar,Apr,Jun,Jul,Aug,Sep,Oct,Nov,Dec,
+    julian
 
 abstract AbstractTime
 abstract Calendar <: AbstractTime
@@ -570,5 +571,15 @@ colon{P<:Period}(t1::P, s::P, t2::P) = PeriodRange{P}(t1, s, fld(t2-t1,s) + int3
 colon{P<:Period}(t1::P, t2::P) = PeriodRange{P}(t1, one(P), int32(t2)-int32(t1) + int32(1))
 (+){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start+p,r.step,r.len)
 (-){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start-p,r.step,r.len)
+
+# Julian conversions
+function datetime(f::Float64)
+    seconds,days=modf(f)
+    datetime(-4713,11,24,12)+day(days)+second(86400seconds)
+end
+function julian{C<:Calendar,T<:Offsets}(dt::DateTime{C,T})
+    ydt,mdt,ddt=year(dt),month(dt),day(dt)
+    (date(ydt,mdt,ddt)-date(-4713,11,24))+(dt-datetime(ydt,mdt,ddt,12))/8.64e7
+end
 
 end #module
