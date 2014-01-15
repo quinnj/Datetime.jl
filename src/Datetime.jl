@@ -56,10 +56,11 @@ promote_rule{T<:TimeType,R<:Real}(::Type{T},::Type{R}) = R
 convert{T<:TimeType}(::Type{T},x::Real) = convert(T,int64(x))
 convert{R<:Real}(::Type{R}, x::TimeType) = convert(R,int64(x))
 promote_rule{C<:Calendar,T<:Offsets}(::Type{Date{C}},::Type{DateTime{C,T}}) = DateTime{C,T}
-convert{T<:Offsets}(::Type{DateTime{ISOCalendar,T}},x::Date) = convert(DateTime{ISOCalendar,T},86400000*int64(x))
+convert{T<:Offsets}(::Type{DateTime{ISOCalendar,T}},x::Date) = convert(DateTime{ISOCalendar,T}, (secs = 86400000*int64(x); secs - setoffset(T,secs,year(x),0)))
 convert(::Type{Date{ISOCalendar}},x::DateTime) = convert(Date{ISOCalendar},_days(x))
 date(x::DateTime) = convert(Date{CALENDAR},x)
-datetime(x::Date) = convert(DateTime{CALENDAR,OFFSET},x)
+datetime{T<:Offsets}(x::Date, tz::Type{T}=OFFSET) = convert(DateTime{CALENDAR,tz},x)
+datetime(x::Date, tz::String) = datetime(x, timezone(tz))
 #Date type safety
 promote_rule{C<:Calendar,CC<:Calendar}(::Type{Date{C}},::Type{Date{CC}}) = Date{ISOCalendar}
 convert(::Type{Date{ISOCalendar}},x::Date) = convert(Date{ISOCalendar},int64(x))
