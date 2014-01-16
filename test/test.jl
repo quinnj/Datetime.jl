@@ -507,3 +507,9 @@ Base.Test.@test typeof(r.step) == Second{ISOCalendar}
 datetime(int32(2013),int32(10),int32(27),int32(11),int32(10),int32(9))
 datetime(int32(2013),int32(10),int32(27),int32(11),int32(10),int32(9), int32(8), timezone("UTC"))
 
+#Test for date->DateTime conversion w/ leap seconds
+Base.Test.@test date(datetime(date(2012,7,1))) == date(2012,7,1)
+
+#Test for date->DateTime conversion w/ Timezone
+Base.Test.@test datetime(date(2012,7,1),EST) == datetime(2012,7,1,4,0,0,0)
+Base.Test.@test datetime(date(2012,7,1),"America/New_York") == datetime(2012,7,1,4,0,0,0)
