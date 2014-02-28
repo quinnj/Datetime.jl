@@ -10,5 +10,5 @@ before_install:
     - sudo apt-get install libpcre3-dev julia -y
 script:
     - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir())/Datetime`); Pkg.resolve()'
-    - julia -e 'using Datetime; @assert isdefined(:Datetime); @assert typeof(Datetime) === Module'
-    - julia test/test.jl
+    - julia -e 'include(Pkg.dir() * "/Datetime/src/Dates.jl"); using Dates; @assert isdefined(:Dates); @assert typeof(Dates) === Module'
+    - julia test/run_tests.jl
