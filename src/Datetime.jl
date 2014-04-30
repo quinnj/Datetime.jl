@@ -81,6 +81,12 @@ isequal(x::Real,y::TimeType) = isequal(int64(x),int64(y))
 isequal(x::TimeType,y::TimeType) = isequal(promote(x,y)...)
 isfinite(x::TimeType) = true
 
+#Serialization/Deserialization
+write(io::IO, x::TimeType) = write(io, reinterpret(Uint64, x))
+write(io::IO, x::Period  ) = write(io, reinterpret(Uint32, x))
+read{T<:TimeType}(io::IO, ::Type{T}) = reinterpret(T, read(io, Uint64))
+read{T<:Period  }(io::IO, ::Type{T}) = reinterpret(T, read(io, Uint32))
+
 #Date algorithm implementations
 #Source: Peter Baum - http://mysite.verizon.net/aesir_research/date/date0.htm
 #Convert y,m,d to # of Rata Die days
