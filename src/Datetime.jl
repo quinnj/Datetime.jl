@@ -71,14 +71,14 @@ convert(::Type{DateTime{ISOCalendar,UTC}},x::DateTime) = convert(DateTime{ISOCal
 convert(::Type{DateTime},x::Int64) = convert(DateTime{ISOCalendar,UTC},x)
 hash(x::TimeType) = hash(int64(x))
 length(::TimeType) = 1
-isless{T<:TimeType}(x::T,y::T) = isless(int64(x),int64(y))
-isless(x::TimeType,y::Real) = isless(int64(x),int64(y))
-isless(x::Real,y::TimeType) = isless(int64(x),int64(y))
-isless(x::TimeType,y::TimeType) = isless(promote(x,y)...)
-isequal{T<:TimeType}(x::T,y::T) = isequal(int64(x),int64(y))
-isequal(x::TimeType,y::Real) = isequal(int64(x),int64(y))
-isequal(x::Real,y::TimeType) = isequal(int64(x),int64(y))
-isequal(x::TimeType,y::TimeType) = isequal(promote(x,y)...)
+<{T<:TimeType}(x::T,y::T) = <(int64(x),int64(y))
+<(x::TimeType,y::Real) = <(int64(x),int64(y))
+<(x::Real,y::TimeType) = <(int64(x),int64(y))
+<(x::TimeType,y::TimeType) = <(promote(x,y)...)
+=={T<:TimeType}(x::T,y::T) = ==(int64(x),int64(y))
+==(x::TimeType,y::Real) = ==(int64(x),int64(y))
+==(x::Real,y::TimeType) = ==(int64(x),int64(y))
+==(x::TimeType,y::TimeType) = ==(promote(x,y)...)
 isfinite(x::TimeType) = true
 
 #Serialization/Deserialization
