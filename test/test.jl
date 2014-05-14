@@ -16,11 +16,11 @@ Base.Test.@test typeof(y+d) ==  Day{ISOCalendar}
 Base.Test.@test typeof(y+h) ==  Hour{ISOCalendar}
 Base.Test.@test typeof(y+mi) == Minute{ISOCalendar}
 Base.Test.@test typeof(y+s) ==  Second{ISOCalendar}
-Base.Test.@test_throws typeof(m+w)
-Base.Test.@test_throws typeof(m+d)
-Base.Test.@test_throws typeof(m+h)
-Base.Test.@test_throws typeof(m+mi)
-Base.Test.@test_throws typeof(m+s)
+Base.Test.@test_throws MethodError typeof(m+w)
+Base.Test.@test_throws MethodError typeof(m+d)
+Base.Test.@test_throws MethodError typeof(m+h)
+Base.Test.@test_throws MethodError typeof(m+mi)
+Base.Test.@test_throws MethodError typeof(m+s)
 Base.Test.@test typeof(w+d) ==  Day{ISOCalendar}
 Base.Test.@test typeof(w+h) ==  Hour{ISOCalendar}
 Base.Test.@test typeof(w+mi) ==  Minute{ISOCalendar}
@@ -73,7 +73,7 @@ Base.Test.@test first(r + y) == year(2)
 Base.Test.@test last(r + y) == year(101)
 Base.Test.@test last(y:year(2):t) == year(99)
 Base.Test.@test [year(0):year(25):t][4] == year(75)
-Base.Test.@test_throws y:m:t
+Base.Test.@test_throws MethodError y:m:t
 
 
 #traits
@@ -101,13 +101,11 @@ Base.Test.@test typeof(a) == Date{ISOCalendar}
 Base.Test.@test typeof(b) == Date{ISOCalendar}
 Base.Test.@test dt == dt2
 Base.Test.@test dt - dt2 == days(0)
-Base.Test.@test_throws dt + dt2
 Base.Test.@test !(dt > dt2)
-Base.Test.@test int64(hash(dt)) == 6614235796240398542
 Base.Test.@test length(dt) == 1
 Base.Test.@test convert(Date,0) == date(year(0),month(12),day(31))
 Base.Test.@test convert(Date,-1) == date(0,12,30)
-Base.Test.@test_throws dt2 + y #Diff calendars
+Base.Test.@test_throws MethodError dt2 + y #Diff calendars
 dt3 = datetime(1,1,1)
 Base.Test.@test convert(DateTime,86400000) == dt3
 dt4 = convert(DateTime{Calendar,UTC},float64(86400000))
@@ -117,9 +115,7 @@ Base.Test.@test typeof(a) == DateTime{ISOCalendar,UTC}
 Base.Test.@test typeof(b) == DateTime{ISOCalendar,UTC}
 Base.Test.@test dt3 == dt4
 Base.Test.@test dt3 - dt4 == seconds(0)
-Base.Test.@test_throws dt3 + dt4
 Base.Test.@test !(dt3 > dt4)
-Base.Test.@test int64(hash(dt3)) == 2879920070571771443
 Base.Test.@test length(dt3) == 1
 a,b = promote(dt,dt3) #promote Date => DateTime
 Base.Test.@test typeof(a) == DateTime{ISOCalendar,UTC}
@@ -129,7 +125,6 @@ Base.Test.@test datetime(dt) == dt3
 Base.Test.@test dt == dt3
 Base.Test.@test !(dt > dt3)
 Base.Test.@test dt - dt3 == seconds(0)
-Base.Test.@test_throws dt + dt3
 
 check = (-252522163911150,-1,0,1,252522163911149)
 for (i,x) in enumerate(check)
@@ -179,10 +174,6 @@ Base.Test.@test dt > dt2
 Base.Test.@test dt != dt2
 Base.Test.@test year(-dt) == -2012
 Base.Test.@test +dt == dt
-Base.Test.@test_throws dt + dt2
-Base.Test.@test_throws dt * dt2
-Base.Test.@test_throws dt / dt2
-Base.Test.@test_throws dt + hour(1)
 Base.Test.@test dt - dt2 == 4411
 Base.Test.@test dt > dt2
 Base.Test.@test dt2 < dt
@@ -240,8 +231,6 @@ for i in (a,b,c,d,aa,bb,cc,dd,ccc,ddd)
 end	
 Base.Test.@test date(aaa) == date(2031,5,1)
 Base.Test.@test date(bbb) == date(2001,5,31)
-Base.Test.@test_throws date(e)
-Base.Test.@test_throws date(ee)
 
 #DateRange
 dt1 = date(2000,1,1)
@@ -322,9 +311,6 @@ Base.Test.@test isdatetime(dt)
 Base.Test.@test calendar(dt) == ISOCalendar
 Base.Test.@test year(-dt) == -2012
 Base.Test.@test +dt == dt
-Base.Test.@test_throws dt + dt2
-Base.Test.@test_throws dt * dt2
-Base.Test.@test_throws dt / dt2
 Base.Test.@test dt - dt2 == 381110402000
 Base.Test.@test dt > dt2
 Base.Test.@test dt2 < dt
