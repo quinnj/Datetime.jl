@@ -70,7 +70,6 @@ promote_rule{C<:Calendar,CC<:Calendar,T<:Offsets,TT<:Offsets}(::Type{DateTime{C,
 convert(::Type{DateTime{ISOCalendar,UTC}},x::DateTime) = convert(DateTime{ISOCalendar,UTC},int64(x))
 convert(::Type{DateTime},x::Int64) = convert(DateTime{ISOCalendar,UTC},x)
 hash(x::TimeType, h::Uint) = hash(int64(x), h)
-#hash(x::TimeType) = hash(int64(x))
 length(::TimeType) = 1
 isless{T<:TimeType}(x::T,y::T) =    isless(int64(x),int64(y))
 isless(x::TimeType,y::Real) =       isless(int64(x),int64(y))
