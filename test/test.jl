@@ -82,12 +82,109 @@ Base.Test.@test one(typeof(y)) == y
 Base.Test.@test months(y) == months(12)
 Base.Test.@test weeks(y) == weeks(52)
 Base.Test.@test days(y) == days(365)
-#wrapping
-Base.Test.@test addwrap(1,11) == 12 #month 1 plus 11 months == month 12
-Base.Test.@test addwrap(1,12) == 1  #month 1 plus 12 months == month 1
-Base.Test.@test addwrap(1,24) == 1  #month 1 plus 24 months == month 1
-Base.Test.@test subwrap(12,1) == 11 #month 12 minus 1 month == month 11
-Base.Test.@test addwrap(2000,12,1) == 2001 #year 2000 month 12 plus 1 month == year 2001
+
+# Wrapping arithemtic for Months
+# This ends up being trickier than expected because
+# the user might do 2014-01-01 + Month(-14)
+# monthwrap figures out the resulting month
+# when adding/subtracting months from a date
+@test Datetime.monthwrap(1,-14) == 11
+@test Datetime.monthwrap(1,-13) == 12
+@test Datetime.monthwrap(1,-12) == 1
+@test Datetime.monthwrap(1,-11) == 2
+@test Datetime.monthwrap(1,-10) == 3
+@test Datetime.monthwrap(1,-9) == 4
+@test Datetime.monthwrap(1,-8) == 5
+@test Datetime.monthwrap(1,-7) == 6
+@test Datetime.monthwrap(1,-6) == 7
+@test Datetime.monthwrap(1,-5) == 8
+@test Datetime.monthwrap(1,-4) == 9
+@test Datetime.monthwrap(1,-3) == 10
+@test Datetime.monthwrap(1,-2) == 11
+@test Datetime.monthwrap(1,-1) == 12
+@test Datetime.monthwrap(1,0) == 1
+@test Datetime.monthwrap(1,1) == 2
+@test Datetime.monthwrap(1,2) == 3
+@test Datetime.monthwrap(1,3) == 4
+@test Datetime.monthwrap(1,4) == 5
+@test Datetime.monthwrap(1,5) == 6
+@test Datetime.monthwrap(1,6) == 7
+@test Datetime.monthwrap(1,7) == 8
+@test Datetime.monthwrap(1,8) == 9
+@test Datetime.monthwrap(1,9) == 10
+@test Datetime.monthwrap(1,10) == 11
+@test Datetime.monthwrap(1,11) == 12
+@test Datetime.monthwrap(1,12) == 1
+@test Datetime.monthwrap(1,13) == 2
+@test Datetime.monthwrap(1,24) == 1
+@test Datetime.monthwrap(12,-14) == 10
+@test Datetime.monthwrap(12,-13) == 11
+@test Datetime.monthwrap(12,-12) == 12
+@test Datetime.monthwrap(12,-11) == 1
+@test Datetime.monthwrap(12,-2) == 10
+@test Datetime.monthwrap(12,-1) == 11
+@test Datetime.monthwrap(12,0) == 12
+@test Datetime.monthwrap(12,1) == 1
+@test Datetime.monthwrap(12,2) == 2
+@test Datetime.monthwrap(12,11) == 11
+@test Datetime.monthwrap(12,12) == 12
+@test Datetime.monthwrap(12,13) == 1
+
+# yearwrap figures out the resulting year
+# when adding/subtracting months from a date
+@test Datetime.yearwrap(2000,1,-3600) == 1700
+@test Datetime.yearwrap(2000,1,-37) == 1996
+@test Datetime.yearwrap(2000,1,-36) == 1997
+@test Datetime.yearwrap(2000,1,-35) == 1997
+@test Datetime.yearwrap(2000,1,-25) == 1997
+@test Datetime.yearwrap(2000,1,-24) == 1998
+@test Datetime.yearwrap(2000,1,-23) == 1998
+@test Datetime.yearwrap(2000,1,-14) == 1998
+@test Datetime.yearwrap(2000,1,-13) == 1998
+@test Datetime.yearwrap(2000,1,-12) == 1999
+@test Datetime.yearwrap(2000,1,-11) == 1999
+@test Datetime.yearwrap(2000,1,-2) == 1999
+@test Datetime.yearwrap(2000,1,-1) == 1999
+@test Datetime.yearwrap(2000,1,0) == 2000
+@test Datetime.yearwrap(2000,1,1) == 2000
+@test Datetime.yearwrap(2000,1,11) == 2000
+@test Datetime.yearwrap(2000,1,12) == 2001
+@test Datetime.yearwrap(2000,1,13) == 2001
+@test Datetime.yearwrap(2000,1,23) == 2001
+@test Datetime.yearwrap(2000,1,24) == 2002
+@test Datetime.yearwrap(2000,1,25) == 2002
+@test Datetime.yearwrap(2000,1,36) == 2003
+@test Datetime.yearwrap(2000,1,3600) == 2300
+@test Datetime.yearwrap(2000,2,-2) == 1999
+@test Datetime.yearwrap(2000,3,10) == 2001
+@test Datetime.yearwrap(2000,4,-4) == 1999
+@test Datetime.yearwrap(2000,5,8) == 2001
+@test Datetime.yearwrap(2000,6,-18) == 1998
+@test Datetime.yearwrap(2000,6,-6) == 1999
+@test Datetime.yearwrap(2000,6,6) == 2000
+@test Datetime.yearwrap(2000,6,7) == 2001
+@test Datetime.yearwrap(2000,6,19) == 2002
+@test Datetime.yearwrap(2000,12,-3600) == 1700
+@test Datetime.yearwrap(2000,12,-36) == 1997
+@test Datetime.yearwrap(2000,12,-35) == 1998
+@test Datetime.yearwrap(2000,12,-24) == 1998
+@test Datetime.yearwrap(2000,12,-23) == 1999
+@test Datetime.yearwrap(2000,12,-14) == 1999
+@test Datetime.yearwrap(2000,12,-13) == 1999
+@test Datetime.yearwrap(2000,12,-12) == 1999
+@test Datetime.yearwrap(2000,12,-11) == 2000
+@test Datetime.yearwrap(2000,12,-2) == 2000
+@test Datetime.yearwrap(2000,12,-1) == 2000
+@test Datetime.yearwrap(2000,12,0) == 2000
+@test Datetime.yearwrap(2000,12,1) == 2001
+@test Datetime.yearwrap(2000,12,11) == 2001
+@test Datetime.yearwrap(2000,12,12) == 2001
+@test Datetime.yearwrap(2000,12,13) == 2002
+@test Datetime.yearwrap(2000,12,24) == 2002
+@test Datetime.yearwrap(2000,12,25) == 2003
+@test Datetime.yearwrap(2000,12,36) == 2003
+@test Datetime.yearwrap(2000,12,37) == 2004
+@test Datetime.yearwrap(2000,12,3600) == 2300
 
 #Date tests
 dt = date(1,1,1)

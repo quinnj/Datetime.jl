@@ -266,7 +266,7 @@ show(io::IO,x::TimeType) = print(io,string(x))
 #Generic date functions
 isleap(dt::DateTimeDate) = isleap(year(dt))
 lastdayofmonth(dt::DateTimeDate) = lastdayofmonth(year(dt),month(dt))
-dayofweek(dt::DateTimeDate) = mod1(days,7)
+dayofweek(dt::DateTimeDate) = mod1(_days(dt),7)
 dayofweekinmonth(dt::DateTimeDate) = (d = day(dt); return d < 8 ? 1 : d < 15 ? 2 : d < 22 ? 3 : d < 29 ? 4 : 5)
 function daysofweekinmonth(dt::DateTimeDate)
 	d,ld = day(dt),lastdayofmonth(dt)
@@ -325,26 +325,26 @@ end
 #months
 function (+){C<:Calendar}(dt::Date{C},z::Month{C}) 
 	y,m,d = _day2date(_days(dt))
-	ny = addwrap(y,m,int64(z))
-	mm = addwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	ny = yearwrap(y,m,int64(z))
+	mm = monthwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
 	return date(ny,mm,d <= ld ? d : ld)
 end
 function (-){C<:Calendar}(dt::Date{C},z::Month{C})
 	y,m,d = _day2date(_days(dt))
-	ny = subwrap(y,m,int64(z))
-	mm = subwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	ny = yearwrap(y,m,-int64(z))
+	mm = monthwrap(m,-int64(z)); ld = lastdayofmonth(ny,mm)
 	return date(ny,mm,d <= ld ? d : ld)
 end
 function (+){C<:Calendar,T<:Offsets}(dt::DateTime{C,T},z::Month{C}) 
 	y,m,d = _day2date(_days(dt))
-	ny = addwrap(y,m,int64(z))
-	mm = addwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	ny = yearwrap(y,m,int64(z))
+	mm = monthwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
 	return datetime(ny,mm,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
 end
 function (-){C<:Calendar,T<:Offsets}(dt::DateTime{C,T},z::Month{C}) 
 	y,m,d = _day2date(_days(dt))
-	ny = subwrap(y,m,int64(z))
-	mm = subwrap(m,int64(z)); ld = lastdayofmonth(ny,mm)
+	ny = yearwrap(y,m,-int64(z))
+	mm = monthwrap(m,-int64(z)); ld = lastdayofmonth(ny,mm)
 	return datetime(ny,mm,d <= ld ? d : ld,hour(dt),minute(dt),second(dt))
 end
 #weeks,days,hours,minutes,seconds
@@ -561,11 +561,12 @@ end
 
 (/){P<:Period}(x::P,y::P) = int32(x) / int32(y)
 
-#wrapping arithmetic
-addwrap(x::Int64,y::Int64) = (v = (x + y)      % 12; return v == 0 ? 12 : v)
-subwrap(x::Int64,y::Int64) = (v = (x - y + 12) % 12; return v == 0 ? 12 : v)
-addwrap(x::Int64,y::Int64,z::Int64) = x + (y + z > 12 ? max(1, fld(z,12)) : 0)
-subwrap(x::Int64,y::Int64,z::Int64) = x - (y - z < 1  ? max(1, fld(z,12)) : 0)
+# Date/DateTime-Month arithmetic
+# monthwrap adds two months with wraparound behavior (i.e. 12 + 1 == 1)
+monthwrap(m1,m2) = (v = mod1(m1+m2,12); return v < 0 ? 12 + v : v)
+# yearwrap takes a starting year/month and a month to add and returns
+# the resulting year with wraparound behavior (i.e. 2000-12 + 1 == 2001)
+yearwrap(y,m1,m2) = y + fld(m1 + m2 - 1,12)
 
 #DateRange: for creating fixed period frequencies
 immutable PeriodRange{P<:Period} <: Ranges{Period}
