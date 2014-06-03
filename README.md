@@ -1,6 +1,6 @@
 Datetime.jl
 =======
-[![Build Status](https://travis-ci.org/karbarcca/Datetime.jl.png)](https://travis-ci.org/karbarcca/Datetime.jl)
+[![Build Status](https://travis-ci.org/quinnj/Datetime.jl.png)](https://travis-ci.org/quinnj/Datetime.jl)
 
 A Date and DateTime implementation for Julia
 
@@ -16,8 +16,8 @@ julia> using Datetime      # Loads the Datetime module for use (needs to be run 
 ```
 
 
-* Checkout the [Datetime manual](https://github.com/karbarcca/Datetime.jl/wiki/Datetime-Manual)
+* Checkout the [Datetime manual](https://github.com/quinnj/Datetime.jl/wiki/Datetime-Manual)
 
-* Information on [timezones](https://github.com/karbarcca/Datetime.jl/wiki/Timezone-Information) used in Datetime
+* Information on [timezones](https://github.com/quinnj/Datetime.jl/wiki/Timezone-Information) used in Datetime
 
-* [API Reference](https://github.com/karbarcca/Datetime.jl/wiki/API-Reference)
+* [API Reference](https://github.com/quinnj/Datetime.jl/wiki/API-Reference)
