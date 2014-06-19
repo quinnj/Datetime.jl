@@ -367,7 +367,7 @@ typealias DateTimePeriod Union(DateTimeDate,Period)
 (+){T<:DateTimePeriod}(x::DateTimePeriod, y::AbstractArray{T}) = reshape([x + y[i] for i in 1:length(y)], size(y))
 (+){T<:DateTimePeriod}(x::AbstractArray{T}, y::DateTimePeriod) = reshape([x[i] + y for i in 1:length(x)], size(x))
 (-){T<:DateTimePeriod}(x::DateTimePeriod, y::AbstractArray{T}) = reshape([x - y[i] for i in 1:length(y)], size(y))
-(-){T<:DateTimePeriod}(x::AbstractArray{T}, y::DateTimePeriod) = reshape([x[i] - fyor i in 1:length(x)], size(x))
+(-){T<:DateTimePeriod}(x::AbstractArray{T}, y::DateTimePeriod) = reshape([x[i] - y for i in 1:length(x)], size(x))
 
 
 #DateRange: for creating fixed period frequencies
