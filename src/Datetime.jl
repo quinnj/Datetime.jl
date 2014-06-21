@@ -15,7 +15,8 @@ export Calendar, ISOCalendar, Offsets, TimeZone, Offset, CALENDAR, OFFSET, Perio
     Mon,Tue,Wed,Thu,Fri,Sat,Sun,
     January, February, March, April, May, June, July,
     August, September, October, November, December,
-	Jan,Feb,Mar,Apr,Jun,Jul,Aug,Sep,Oct,Nov,Dec
+        Jan,Feb,Mar,Apr,Jun,Jul,Aug,Sep,Oct,Nov,Dec,
+    strftime, Date2TmStruct, TmStruct2Date, DateTime2TmStruct, TmStruct2DateTime
 
 abstract AbstractTime
 abstract Calendar <: AbstractTime
@@ -588,5 +589,48 @@ colon{P<:Period}(t1::P, s::P, t2::P) = PeriodRange{P}(t1, s, fld(t2-t1,s) + int3
 colon{P<:Period}(t1::P, t2::P) = PeriodRange{P}(t1, one(P), int32(t2)-int32(t1) + int32(1))
 (+){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start+p,r.step,r.len)
 (-){P<:Period}(r::PeriodRange{P},p::P) = PeriodRange{P}(r.start-p,r.step,r.len)
+
+
+# strftime and friend
+import Base.strftime
+
+# Date TmStruct and strftime()
+function Date2TmStruct(d::Date)
+    """convert a Datetime.jl Date to a Julia TmStruct    """
+    tmd = TmStruct(int32(0),int32(0),int32(0), int32(day(d)), int32(month(d)-1), int32(year(d)-1900),
+                   int32(dayofweek(d)), int32(dayofyear(d)), int32(0) )
+    return tmd
+end
+
+function TmStruct2Date(tmd::TmStruct)
+     """convert a TmStruct to a Date"""
+     return date( int64(tmd.year+1900), int64(tmd.month+1), int64(tmd.mday) )
+end
+
+function strftime(fmt::String, d::Date)
+  """strftime date formatting using Datetime.Date"""
+  return strftime(fmt, Date2TmStruct(d))
+end
+
+# DateTime TmStruct and strftime()
+function DateTime2TmStruct(dt::Datetime.DateTime)
+    """convert a Datetime.jl DateTime to a Julia TmStruct"""
+    tmdt = TmStruct(second(dt), minute(dt), hour(dt), day(dt), month(dt)-1, year(dt)-1900,
+                    dayofweek(dt), dayofyear(dt), 0)
+    return tmdt
+end
+
+function TmStruct2DateTime(tmd::TmStruct)
+   """convert a TmStruct to a DateTime"""
+   dt=datetime(int64(tmd.year+1900),int64(tmd.month+1),int64(tmd.mday),
+               int64(tmd.hour), int64(tmd.min), int64(tmd.sec) )
+   return dt
+end
+
+function strftime(fmt::String, dt::DateTime)
+  """strftime date formatting using Datetime.DateTime"""
+  return strftime(fmt, DateTime2TmStruct(dt))
+end
+
 
 end #module
