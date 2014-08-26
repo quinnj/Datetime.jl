@@ -63,7 +63,7 @@ const DATAFILES = (DataType=>Symbol)[Zone1=>:Zone1DATA  ,Zone2=>:Zone2DATA  ,Zon
 	Zone400=>:Zone400DATA,Zone401=>:Zone401DATA,Zone402=>:Zone402DATA,Zone403=>:Zone403DATA,Zone404=>:Zone404DATA,Zone405=>:Zone405DATA,Zone406=>:Zone406DATA,Zone407=>:Zone407DATA,Zone408=>:Zone408DATA,Zone409=>:Zone409DATA,Zone410=>:Zone410DATA,Zone411=>:Zone411DATA,Zone412=>:Zone412DATA,Zone413=>:Zone413DATA,Zone414=>:Zone414DATA,Zone415=>:Zone415DATA,Zone416=>:Zone416DATA,Zone417=>:Zone417DATA,Zone418=>:Zone418DATA]
 
 #These functions retrieves the correct offset/abbreviation for a given time/timezone
-const FILEPATH = Base.dirname(Base.source_path())
+const FILEPATH = dirname(@__FILE__)
 function setoffset{T<:TimeZone}(tz::Type{T},secs,y,s)
 	secs1 = secs - (1902 < y < 2038 ? _setoffset(tz,secs) : get(OFFSETS,tz,0))
     secs1 += y < 1972 ? 0 : s == 60 ? leaps1(secs1) : leaps(secs1)
@@ -72,7 +72,7 @@ end
 function _setoffset{T<:TimeZone}(tz::Type{T},secs)
 	sym = get(DATAFILES,tz,:Zone382DATA)
 	if !isdefined(Datetime,sym)
-		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
+		open(joinpath(FILEPATH,"../deps/tzdata/"*string(tz)*"DATA")) do ff
 			tzdata = deserialize(ff)
 		end
 		@eval global $sym = $tzdata
@@ -103,7 +103,7 @@ end
 function getoffset{T<:TimeZone}(tz::Type{T},secs)
 	sym = get(DATAFILES,tz,:Zone382DATA)
 	if !isdefined(Datetime,sym)
-		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
+		open(joinpath(FILEPATH,"../deps/tzdata/"*string(tz)*"DATA")) do ff
 			tzdata = deserialize(ff)
 		end
 		@eval global $sym = $tzdata
@@ -117,7 +117,7 @@ end
 function getoffset_secs{T<:TimeZone}(tz::Type{T},secs)
 	sym = get(DATAFILES,tz,:Zone382DATA)
 	if !isdefined(Datetime,sym)
-		open(FILEPATH*"/tzdata/"*string(tz)*"DATA") do ff
+		open(joinpath(FILEPATH,"../deps/tzdata/"*string(tz)*"DATA")) do ff
 			tzdata = deserialize(ff)
 		end
 		@eval global $sym = $tzdata

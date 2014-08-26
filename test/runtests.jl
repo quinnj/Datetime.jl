@@ -59,8 +59,6 @@ y,q = promote(y,q) #check periods w/ diff calendars
 @test 5 % y*10 == 0
 @test !(y > 3)
 @test 4 > y
-t = [y,y,y,y,y]
-@test t .+ year(2) == [year(3),year(3),year(3),year(3),year(3)]
 #PeriodRange
 t = year(100)
 r = y:t
