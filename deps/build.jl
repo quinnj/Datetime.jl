@@ -1,3 +1,5 @@
+warn("The Datetime.jl package is deprecated, but will remain maintained for the 0.3 release. Please consider using the Dates.jl package instead, which mirrors the Dates module in Base Julia in 0.4")
+
 const FILEPATH = joinpath(dirname(@__FILE__),"tzdata")
 
 #create _leaps and _leaps1
