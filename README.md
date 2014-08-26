@@ -1,6 +1,7 @@
 Datetime.jl
 =======
 [![Build Status](https://travis-ci.org/quinnj/Datetime.jl.png)](https://travis-ci.org/quinnj/Datetime.jl)
+[![Coverage Status](https://img.shields.io/coveralls/quinnj/Dates.jl.svg)](https://coveralls.io/r/quinnj/Datetime.jl)
 
 A Date and DateTime implementation for Julia
 
