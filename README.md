@@ -3,6 +3,8 @@ Datetime.jl
 [![Build Status](https://travis-ci.org/quinnj/Datetime.jl.png)](https://travis-ci.org/quinnj/Datetime.jl)
 [![Coverage Status](https://img.shields.io/coveralls/quinnj/Dates.jl.svg)](https://coveralls.io/r/quinnj/Datetime.jl)
 
+>This project is now obsolete. Starting with version `0.4-dev`, date and time functionality has been added to Julia base. For codebases on Julia version `0.3-` the same functionality is packaged as [Dates.jl](https://github.com/quinnj/Dates.jl)
+
 A Date and DateTime implementation for Julia
 
 Open the test/test.jl file for more examples of code to run and functionality.
